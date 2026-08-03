@@ -1,0 +1,12 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "permissions": {
+    "allow": [
+      "Bash(bash ./ocaml-learning/scripts/ocaml.sh *)",
+      "PowerShell(bash ./ocaml-learning/scripts/ocaml.sh *)",
+      "Write(./ocaml-learning/notes/handoff-report.md)",
+      "Bash(wsl -d Ubuntu -- bash ./ocaml-learning/scripts/ocaml.sh *)",
+      "PowerShell(wsl -d Ubuntu -- bash ./ocaml-learning/scripts/ocaml.sh *)"
+    ]
+  }
+}

@@ -1,0 +1,25 @@
+# dune / OCaml
+_build/
+*.install
+*.merlin
+.merlin
+*.cm[ioxa]
+*.cmx[as]
+*.o
+*.a
+*.so
+*.exe
+*.annot
+
+# opam 本地 switch（如果以后在仓库里建了 _opam）
+_opam/
+
+# Claude Code 的个人级覆盖设置（因机器而异，不进仓库）
+.claude/settings.local.json
+
+# 编辑器 / 系统
+.vscode/
+.DS_Store
+Thumbs.db
+*~
+*.swp
