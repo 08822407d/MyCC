@@ -1,0 +1,19 @@
+# 这个仓库在 Windows 笔记本和 Ubuntu 台式机之间交替同步。
+#
+# 关键约束：scripts/*.sh 会被送进 WSL 的 bash 执行。
+# 如果 Windows 侧 core.autocrlf=true 让它们在 clone 时变成 CRLF，
+# bash 会报 `$'\r': command not found`，整个构建入口直接瘫掉。
+#
+# 所以这里强制所有文本文件在仓库和工作区里都用 LF，
+# 不管各台机器的 core.autocrlf 怎么设置。
+
+* text=auto eol=lf
+
+# 冗余声明，出问题时一眼能看出意图
+*.sh  text eol=lf
+*.ml  text eol=lf
+*.mli text eol=lf
+*.md  text eol=lf
+*.json text eol=lf
+dune  text eol=lf
+dune-project text eol=lf
