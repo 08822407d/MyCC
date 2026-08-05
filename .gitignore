@@ -17,6 +17,10 @@ _opam/
 # Claude Code 的个人级覆盖设置（因机器而异，不进仓库）
 .claude/settings.local.json
 
+# Claude 自己验证用的临时代码，按约定可随时清空，不进仓库
+# （见 ocaml-learning/CLAUDE.md 第 7 节的目录约定）
+scratch/
+
 # 编辑器 / 系统
 .vscode/
 .DS_Store

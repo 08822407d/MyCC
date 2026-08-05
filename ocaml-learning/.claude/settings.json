@@ -4,9 +4,22 @@
     "allow": [
       "Bash(bash ./scripts/ocaml.sh *)",
       "PowerShell(bash ./scripts/ocaml.sh *)",
-      "Write(./notes/handoff-report.md)",
+      "Bash(./scripts/ocaml.sh *)",
+
+      "Bash(git status *)",
+      "Bash(git log *)",
+      "Bash(git diff *)",
+      "Bash(git show *)",
+      "Bash(git branch *)",
+      "Bash(git ls-files *)",
+      "Bash(git ls-remote *)",
+      "Bash(git remote -v)",
+
       "Bash(wsl -d Ubuntu -- bash ./scripts/ocaml.sh *)",
-      "PowerShell(wsl -d Ubuntu -- bash ./scripts/ocaml.sh *)"
+      "PowerShell(wsl -d Ubuntu -- bash ./scripts/ocaml.sh *)",
+
+      "Write(./notes/handoff-report.md)",
+      "Write(./scratch/*)"
     ]
   }
 }

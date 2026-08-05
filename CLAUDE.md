@@ -7,6 +7,19 @@
 | 目录 | 内容 |
 |---|---|
 | `ocaml-learning/` | **OCaml 语言学习**（教学性质的连续问答）。有独立的 `CLAUDE.md`，规则和命令都在那里。 |
+| `compiler-roadmap/` | **编译器学习路线规划**。纯文档，没有代码。**和 OCaml 的教学进度是两回事，别混。** |
+
+## 如果用户要聊学习路线 / 课程选择 / 技能规划
+
+**先读 `compiler-roadmap/skills-profile.md`，再读 `compiler-roadmap/ROADMAP.md`。**
+
+- `skills-profile.md` —— **用户的技能栈档案。给任何学习建议之前必读。**
+  他在 C / Linux 内核方向是**专家**（6 年内核源码阅读 + 一个类内核项目），
+  在 C++ / OCaml / 编译器理论上是**初学者**。**按「平均水平」给建议会同时高估和低估他。**
+- `ROADMAP.md` —— 路线本身。里面有「**明确排除的方向**」和「**已推翻的判断**」两节，
+  **看完再提建议，别重复已经否决过的东西**（比如「实现 C 预处理器」「用 MIPS 做目标架构」）。
+- `resources.md` —— 课程/书/工具清单，**每条都标了查证状态**（✅ 已查 / ⚠️ 未查证）。
+  别把 ⚠️ 的当事实用。
 
 ## 如果用户要聊 OCaml 学习
 
@@ -24,6 +37,25 @@ bash ./ocaml-learning/scripts/ocaml.sh <子命令>
 
 **更推荐的做法是让用户直接把 `ocaml-learning/` 作为工作目录打开**，这样路径更短，
 而且那一层的 `.claude/settings.json` 免授权规则会生效。
+
+## 命令免授权（Agent 行为配置）
+
+目前用的 Agent 只有 **Claude Code**。免授权白名单在 `.claude/settings.json` 的
+`permissions.allow` 里，**两层各一份**，因为规则里的路径是相对工作目录的，不能互相照抄：
+
+| 文件 | 何时生效 |
+|---|---|
+| `.claude/settings.json`（本层） | 把 `MyCC/` 作为工作目录打开 |
+| `ocaml-learning/.claude/settings.json` | 把 `ocaml-learning/` 作为工作目录打开（**推荐**） |
+
+**完整的机制说明、已放行/故意不放行的清单、加新规则的步骤，都在
+`ocaml-learning/CLAUDE.md` 第 1.5 节**，这里不重复。
+
+三条要点：
+
+- `settings.json` 是**严格 JSON，写注释会让整个文件失效**——说明只能写在 CLAUDE.md 里
+- **git 的写操作（commit/push/pull）故意没有放行**，弹框是「git 等用户开口」的最后一道闸
+- 改之前**先读再合并**，别整体覆盖掉已有规则
 
 ## 交接自检
 
