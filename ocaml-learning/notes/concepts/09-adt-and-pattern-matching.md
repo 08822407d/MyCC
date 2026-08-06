@@ -201,7 +201,33 @@ type value = VInt of int | VFloat of float | VStr of string
 9.1 `type` ≠ typedef｜9.2 构造器 + `of`｜9.3 造值/拆值同形｜9.4 穷尽性检查｜
 9.5 vs C tagged union｜9.6 两个坑｜9.7 `_` 是模式
 
-### 🔴 有一道题挂着，用户没答
+### ⏸️ 2026-08-06 晚：**用户把整个 ADT 按下了暂停**
+
+> 「我想还是先巩固一下基础，ADT 和模式匹配这块还是有点复杂，可以先往后放。」
+
+**第 5 次踩刹车，这次他是对的**——原路线里 ADT 本来就排在**递归**后面。
+**重启时从下面「`Rect (w, h)` 那道题」接，9.1–9.7 不用重讲。**
+
+### ✅ 已收：那道挂着的题（**答对**）
+
+用户答「只有 1 合法，2 和 3 携带参数的数量不正确」——**结论和理由都对**。
+（答案表见下。）
+
+### ✅ 已补讲：9.3「`| Circle r ->` 里的 `r` 从哪来」
+
+用 9.3 的「造值/拆值形状相同」讲的，并演示把 `r` 改名成 `whatever` / `banana`
+结果完全不变，证明**它就是你自己起的新名字**。引入术语**模式变量（pattern variable）**。
+**用户对这一段没有异议**——他是在我追问下面这道题时喊的停：
+
+```ocaml
+type shape = Circle of float | Rect of float * float
+(* 问：| Rect ??? -> 那条分支怎么写？ *)
+```
+
+⚠️ 顺带一个实测坑：**OCaml 标识符不能用中文**（想拿「半径」当变量名演示时撞的）：
+`Error: Invalid character U+534A in identifier`。演示用 ASCII 名字。
+
+### 原始题面与答案
 
 ```ocaml
 type shape = Circle of float | Square of float
@@ -215,10 +241,10 @@ type shape = Circle of float | Square of float
 | `Circle` | ❌ `expects 1 argument(s), but is applied here to 0` |
 | `Circle 2.0 3.0` | ❌ **`Syntax error`**（不是类型错误！因为构造器不是函数） |
 
-### 🔴 还没讲的（用户明确说「还没弄清楚」）
+### 🔴 还没讲的
 
-- **模式匹配怎么把数据取出来** —— 即 `| Circle r -> …` 里 `r` 是从哪来的。
-  **9.3 已经写了答案，但用户还没消化**，下次从这里接。
+- **重启的入口**：`type shape = Circle of float | Rect of float * float`，
+  问 `| Rect ??? ->` 怎么写。**多字段构造器的拆法**，就差这一步。
 - `when` 守卫｜或模式 `p1 | p2`｜嵌套模式｜递归类型定义｜as 模式
 - `option` 类型（`None | Some x`）—— **最实用，优先补**
 - `function` 关键字｜列表模式｜记录模式｜多态 ADT
