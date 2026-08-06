@@ -9,15 +9,15 @@
 (* ======================= 你的代码（改这里） ======================= *)
 
 (* TODO 1：返回 n 的两倍。 *)
-let double_int (n : int) : int = failwith "TODO 1"
+let double_int (n : int) : int = 2 * n
 
 (* TODO 2：返回 x 的一半。
    注意：整数用的那个除号在这里是编译不过的。 *)
-let half_float (x : float) : float = failwith "TODO 2"
+let half_float (x : float) : float = x /. 2.
 
 (* TODO 3：把整数 n 变成浮点，再和 x 相加。
    OCaml 不会替你做这个转换，得自己写出来。 *)
-let add_int_float (n : int) (x : float) : float = failwith "TODO 3"
+let add_int_float (n : int) (x : float) : float = float_of_int n +. x
 
 (* ===================== 分隔线以下别改 ===================== *)
 

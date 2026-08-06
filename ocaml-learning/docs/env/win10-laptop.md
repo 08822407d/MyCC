@@ -82,6 +82,61 @@ Claude 起不了它（需要交互终端），**下面几条是给人用的**：
 
 打开方式：WSL 终端里 `code .`，或 `Ctrl+Shift+P` → `WSL: Connect to WSL`。
 
+## 截屏：Claude 可以自己截图看渲染效果（2026-08-06 实测可用）
+
+调 UI / 排版类问题时有用 —— **Claude 能自己截屏并读图**，不用让用户描述看到了什么。
+**Windows 自带 .NET 就够，不需要安装任何工具。**
+
+```powershell
+Add-Type -AssemblyName System.Windows.Forms, System.Drawing
+$s = [System.Windows.Forms.Screen]::AllScreens | Where-Object { -not $_.Primary } | Select-Object -First 1
+$b = $s.Bounds
+$bmp = New-Object System.Drawing.Bitmap $b.Width, $b.Height
+$g = [System.Drawing.Graphics]::FromImage($bmp)
+$g.CopyFromScreen($b.Location, [System.Drawing.Point]::Empty, $b.Size)
+$bmp.Save("<路径>.png", [System.Drawing.Imaging.ImageFormat]::Png)
+$g.Dispose(); $bmp.Dispose()
+```
+
+存到 scratchpad，然后用 `Read` 工具读那个 png 就能看见。
+
+### ⚠️ 本机特有的三个坑
+
+1. **两块 1080×1920 竖屏并排**（`DISPLAY1` @ (0,0) 主屏，`DISPLAY2` @ (1080,0)）。
+   **对话窗口在副屏**，`PrimaryScreen` 截到的是另一块 —— 第一次就踩了这个，白截一张。
+   所以上面的代码筛的是 `-not $_.Primary`。
+2. **截屏会拍到用户的其它窗口**（第一次拍到了浏览器里的别的会话）。
+   **截之前先说一声，用完立刻删**，不要留在磁盘上。
+3. 同一轮里**先输出待测的 markdown、再截屏**是可行的 —— 已输出的文本此时已经渲染出来了，
+   不需要等用户回话。这样一轮就能自测排版效果。
+
+## 汇编 / 链接工具链（2026-08-06 实测）—— ⚠️ **和台式机不一样**
+
+伯克利那门课的玩具编译器要调 `nasm` + `gcc` 把汇编跑起来
+（配方见 [`../../notes/concepts/07-toy-compiler-pipeline.md`](../../notes/concepts/07-toy-compiler-pipeline.md)）。
+**这台机器的 WSL 里少一个：**
+
+| 工具 | 本机（win10-laptop / WSL） | 对照 ubuntu24-pc |
+|---|---|---|
+| **nasm** | ❌ **没装** | ✅ `/usr/bin/nasm` |
+| gcc | ✅ `/usr/bin/gcc`（15.2.0） | ✅ |
+| ld | ✅ `/usr/bin/ld` | ✅ |
+| 架构 | `x86_64` | `x86_64` |
+
+**所以那条链路在这台机器上现在跑不通**，要跑得先补：
+
+```bash
+wsl -d Ubuntu -- bash -lc 'sudo apt install nasm'
+```
+
+（`elf64` 那条改动两台机器一样——都是 Linux，不是讲师的 macOS `macho64`。）
+
+> ⚠️ **顺带记一个查工具时踩过的坑**（2026-08-05）：用
+> `for t in gcc nasm; do ... $t ...; done` 这种循环写法通过
+> `wsl -d Ubuntu -- bash -lc '...'` 传进去时，**变量会被吃掉**，
+> 结果每一项都报「没装」——当时因此**误报 gcc 没装**。
+> **查工具就直接写死命令名**，别在传给 WSL 的字符串里用循环变量。
+
 ## Windows 侧工具版本（2026-08-03 核对）
 
 跟 OCaml 无关，但属于本机状态，换机器时不要照抄：
