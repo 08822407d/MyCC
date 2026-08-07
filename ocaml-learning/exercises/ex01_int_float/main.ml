@@ -24,12 +24,9 @@ let add_int_float (n : int) (x : float) : float = float_of_int n +. x
 let check name to_s expected thunk =
   match thunk () with
   | actual ->
-    if actual = expected then Printf.printf "  [OK] %s\n" name
-    else
-      Printf.printf "  [XX] %s -> 期望 %s，实际 %s\n" name (to_s expected)
-        (to_s actual)
-  | exception e ->
-    Printf.printf "  [--] %s -> 还没做（%s）\n" name (Printexc.to_string e)
+      if actual = expected then Printf.printf "  [OK] %s\n" name
+      else Printf.printf "  [XX] %s -> 期望 %s，实际 %s\n" name (to_s expected) (to_s actual)
+  | exception e -> Printf.printf "  [--] %s -> 还没做（%s）\n" name (Printexc.to_string e)
 
 let si = string_of_int
 let sf = string_of_float
