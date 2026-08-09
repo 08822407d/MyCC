@@ -1,0 +1,23 @@
+{
+  // ── 只关掉 OCaml 源码文件里的 AI 代码补全 ────────────────────────────
+  //
+  // 起因（2026-08-08）：练习题的注释里写了功能描述，Codeium 直接据此
+  // 补全出了正确实现，等于把答案送到眼前，练习就白做了。
+  //
+  // codeium.enableConfig 是按「语言 ID」配置的对象，"*" 是默认值。
+  // 这里只关 ocaml / ocaml.interface，**其他语言完全不受影响**。
+  //
+  // ⚠️ 没有关掉 ocamllabs.ocaml-platform（OCaml LSP）自带的补全 ——
+  //    那个是基于类型和已有标识符的，只会提示「这里能填什么类型的东西」，
+  //    不会替你把算法写出来。对学习有帮助，留着。
+  //
+  // 语言 ID 来自 ocamllabs.ocaml-platform：
+  //   ocaml            → .ml
+  //   ocaml.interface  → .mli
+  //   （以后写 .mll / .mly 时如果也想关，加 ocaml.ocamllex / ocaml.menhir）
+  "codeium.enableConfig": {
+    "*": true,
+    "ocaml": false,
+    "ocaml.interface": false
+  }
+}

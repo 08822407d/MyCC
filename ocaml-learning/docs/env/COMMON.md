@@ -64,6 +64,44 @@
 顺带一提（两台通用）：`dune build --build-dir=<外部绝对路径>` 这条路走不通，
 dune 会直接报 `Cannot create external build directory`，别再试了。
 
+## 编辑器：OCaml 文件里关掉 AI 补全（2026-08-08，两台通用）
+
+**起因**：练习题的注释里写着功能描述，**Codeium 直接据此补全出了正确实现**，
+答案送到眼前，练习就白做了。
+
+**做法**：`ocaml-learning/.vscode/settings.json`
+
+```jsonc
+"codeium.enableConfig": {
+  "*": true,
+  "ocaml": false,
+  "ocaml.interface": false
+}
+```
+
+- **只关 OCaml**（`.ml` / `.mli`），其他语言一律不受影响
+- **没有关 `ocamllabs.ocaml-platform`（OCaml LSP）自带的补全** —— 那个基于类型和
+  已有标识符，只提示「这里能填什么类型的东西」，不会替你把算法写出来，**对学习有益，留着**
+- 以后写 `.mll` / `.mly` 想一起关，加 `ocaml.ocamllex` / `ocaml.menhir`
+  （语言 ID 来自 ocaml-platform 扩展）
+
+**⚠️ 这个文件是 `.gitignore` 的一个特例。** 仓库里 `.vscode/` 整体不进版本库，
+但这条是教学设定、两台都要，所以单独放行了。`.gitignore` 里的写法：
+
+```gitignore
+**/.vscode/*
+!**/.vscode/settings.json
+```
+
+**两个坑都实测过，别改回去：**
+
+1. 目录被整体 ignore 时 git **不会下探**，负向规则会失效 → 必须写成 `.../*` 再放行
+2. **含内部斜杠的模式会被锚定到仓库根** —— 写 `.vscode/*` 只能匹配根目录那个，
+   匹配任意层级必须写 `**/.vscode/*`
+
+**生效验证**：打开任意 `.ml` 文件敲几个字符，不应再出现灰色的整段建议。
+没生效就 `Ctrl+Shift+P` → `Developer: Reload Window`。
+
 ## 仓库同步
 
 - 仓库：`08822407d/MyCC`，本项目是其中的 `ocaml-learning/` 子目录。

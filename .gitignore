@@ -22,7 +22,14 @@ _opam/
 scratch/
 
 # 编辑器 / 系统
-.vscode/
+# .vscode/ 整体不进仓库，但 settings.json 是个例外 —— 它记录的是
+# 「OCaml 练习时关掉 AI 补全」这条教学设定，两台机器都需要，所以要同步。
+# 两个坑（都实测过）：
+#   1. 目录被整体 ignore 时 git 不会下探，负向规则会失效 → 必须写成 .../* 再放行
+#   2. 含有内部斜杠的模式会被**锚定到仓库根**，所以 .vscode/* 只能匹配根目录那个；
+#      要匹配任意层级必须写 **/.vscode/*
+**/.vscode/*
+!**/.vscode/settings.json
 .DS_Store
 Thumbs.db
 *~

@@ -128,3 +128,25 @@ opt -passes=verify foo.ll -S     # 结构验证
 
 - [Boosting RISC-V Application Performance: An 8-Month LLVM Journey — Igalia](https://blogs.igalia.com/compilers/2025/05/05/boosting-risc-v-application-performance-an-8-month-llvm-journey/)
 - [A Multi-level Compiler Backend for RISC-V ISA Extensions（CGO 2025）](https://arxiv.org/abs/2502.04063)
+
+## OCaml 语言教程（查证于 2026-08-08）
+
+**用途**：`ocaml-learning/` 的教学顺序参照物。两份的目录都实际抓过，不是凭印象。
+**当前实际执行的顺序见 `ocaml-learning/notes/CURRICULUM.md`**——那份是按用户锚点重排的，
+**故意和这两本不同**，差异和理由都写在里面。
+
+- ✅ [Cornell CS 3110《OCaml Programming: Correct + Efficient + Beautiful》](https://cs3110.github.io/textbook/)
+  免费、每章有习题、每节配视频。章序：
+  Basics → **Data and Types**（Lists→Variants→Records&Tuples→Advanced Pattern Matching→
+  Type Synonyms→**Options**→Association Lists→ADT→**Exceptions**→Trees）
+  → **Higher-Order Programming**（HOF→**Map→Filter→Fold**→Beyond Lists→**Pipelining**→Currying）
+  → Modular Programming → Mutability → Concurrency → Correctness → Data Structures
+  → **Interpreters** ← 和最终目标直接对口
+- ✅ [ocaml.org 官方教程](https://ocaml.org/docs)
+  语言主线只有四篇，比 CS 3110 短得多但前面更陡：
+  Values and Functions → **Data Types and Pattern Matching** → **Lists**（含**高阶函数 +
+  `List` 模块 + 尾递归**）→ **Loops and Recursions**（含 for/while、遍历列表、数组、`and`）；
+  中级层另有 **Error Handling**。
+
+**两份交叉验证出的结论**：`map` / `filter` / `fold` 是最大断层——
+CS 3110 单列一章，**官方干脆放进「Lists」那一篇**，即在官方眼里它们是列表的一部分。
