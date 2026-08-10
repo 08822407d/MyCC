@@ -32,9 +32,9 @@ type shape =
    所以每条分支直接写结果就行。 *)
 let fabric_name (f : fabric) : string =
   match f with
-  | Linen -> failwith "TODO 1a"
-  | Cotton -> failwith "TODO 1b"
-  | Wool -> failwith "TODO 1c"
+  | Linen -> "亚麻"
+  | Cotton -> "棉"
+  | Wool -> "羊毛"
 
 (* TODO 2：算面积。圆周率就用 3.14（不要用 Float.pi，测试是按 3.14 算的）。
    Point -> 0.       Circle r -> 3.14 * r * r      Rect (w, h) -> w * h
@@ -43,9 +43,9 @@ let fabric_name (f : fabric) : string =
    这题三条分支正好覆盖「带 0 个 / 1 个 / 2 个数据」三种构造器。 *)
 let area (s : shape) : float =
   match s with
-  | Point -> failwith "TODO 2a"
-  | Circle r -> failwith "TODO 2b"
-  | Rect (w, h) -> failwith "TODO 2c"
+  | Point -> 0.
+  | Circle r -> r *. r *. 3.14
+  | Rect (w, h) -> w *. h
 
 (* TODO 3：只说它是哪一类，不关心里面的数。
    Point -> "点"     Circle _ -> "圆"     Rect _ -> "矩形"
@@ -54,9 +54,9 @@ let area (s : shape) : float =
    你只要填三个字符串，体会一下和 TODO 2 的区别。 *)
 let kind (s : shape) : string =
   match s with
-  | Point -> failwith "TODO 3a"
-  | Circle _ -> failwith "TODO 3b"
-  | Rect _ -> failwith "TODO 3c"
+  | Point -> "点"
+  | Circle _ -> "圆"
+  | Rect _ -> "矩形"
 
 (* TODO 4：算一件作品要多少钱。
    规则：底价按款式定，再乘面料系数，结果取整。
@@ -69,22 +69,22 @@ let kind (s : shape) : string =
 let cost (p : project) : int =
   let base =
     match p.itm with
-    | Shirt -> failwith "TODO 4a"
-    | Pants -> failwith "TODO 4b"
-    | Hat -> failwith "TODO 4c"
+    | Shirt -> 100
+    | Pants -> 150
+    | Hat -> 60
   in
   let factor =
     match p.fab with
-    | Linen -> failwith "TODO 4d"
-    | Cotton -> failwith "TODO 4e"
-    | Wool -> failwith "TODO 4f"
+    | Linen -> 1.5
+    | Cotton -> 1.0
+    | Wool -> 2.0
   in
-  failwith "TODO 4g"
+  int_of_float (factor *. float_of_int base)
 
 (* TODO 5：换面料 —— 返回一件款式不变、面料换成 new_fab 的新作品。
    ⚠️ 原来那件 p 必须原封不动（记录是不可变的）。
    提示：今天讲过一个专门干这个的写法，比重新写全部字段省事。 *)
-let rewrap (p : project) (new_fab : fabric) : project = failwith "TODO 5"
+let rewrap (p : project) (new_fab : fabric) : project = { p with fab = new_fab }
 
 (* ===================== 分隔线以下别改 ===================== *)
 
