@@ -40,7 +40,22 @@
 .NET Framework 时代就有的（泛型 `List<T>`、`Func<>`、接口、`try-catch`、`struct`）才是。
 **判断不准就退回 C。**
 
-**下一步：C1 `map` / `filter`**，从 **C 的 `qsort` comparator** 切入。
+### 🔵 2026-08-14 推完了阶段 C 的前两步
+
+| | 内容 | 状态 |
+|---|---|---|
+| C1 | `map` / `filter` | ✅ 讲完（锚点：C 的 `qsort` comparator） |
+| C1.5 | [`ex06_map_filter`](../exercises/ex06_map_filter/) | ✅ **16 条全过，八题一次通过** |
+| C2 | **`fold`** | ✅ 讲完（`fold_left` / `fold_right`） |
+| C2.5 | [`ex07_fold`](../exercises/ex07_fold/) | 🟡 **8 题都写了，卡在第 8 题的 `? :`** |
+
+**C2 的有效讲法（务必复用）**：从**他自己在 ex03 第 4 题手写的 `go acc rest`** 切进去——
+「这段代码里只有两处和求和有关：`acc + x` 和 `0`，`fold` 就是把这两个旋钮做成参数」。
+**路线里预判他会卡在 fold，结果没卡**，反而自己推出了 `fold_right` 的语义和代价。
+
+**⛔ 下一步（用户主动要求的，优先级最高）：C3 + C3.5 —— `|>` / `@@` + 运算符全表。**
+目标是**「全都见过、有个印象」，不深挖**。**位运算 `land/lor/lsl/…` 一定要讲**
+（不是 C 的 `& | << >>`）。完整清单见 [`CURRICULUM.md`](CURRICULUM.md) 的 C3.5。
 
 **🔴 A 阶段绝对不要引入新概念。** 用户 2026-08-08 明确要求：
 
