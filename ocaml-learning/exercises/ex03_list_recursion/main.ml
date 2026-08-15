@@ -20,9 +20,7 @@
      x :: rest  —— x 是头（一个 int），rest 是尾（还是一张表）。
                    已知 sum_list rest 能算出尾巴的和，那整张表的和怎么拼？ *)
 let rec sum_list (lst : int list) : int =
-  match lst with
-  | [] -> 0
-  | x :: rest -> x + sum_list rest
+  match lst with [] -> 0 | x :: rest -> x + sum_list rest
 
 (* TODO 2：数一数列表里有几个偶数。
    例：count_evens [1; 2; 3; 4]  应得到  2
@@ -43,9 +41,7 @@ let rec count_evens (lst : int list) : int =
    提示：递归情形要「造」一张表出来 —— 造表的工具你今天刚学过，就是 ::
         头是 x * 2，尾是「rest 处理完的结果」。 *)
 let rec double_all (lst : int list) : int list =
-  match lst with
-  | [] -> []
-  | x :: rest -> (x * 2) :: double_all rest
+  match lst with [] -> [] | x :: rest -> (x * 2) :: double_all rest
 
 (* TODO 4：还是求和，但要写成尾递归（用累加器）。
    例：sum_tail [1; 2; 3]  应得到  6
@@ -58,9 +54,7 @@ let rec double_all (lst : int list) : int list =
    ⚠️ 递归情形必须是「最后一件事就是调用 go」，回来之后不能再做加工。 *)
 let sum_tail (lst : int list) : int =
   let rec go (acc : int) (rest : int list) : int =
-    match rest with
-    | [] -> acc
-    | x :: tl -> go (acc + x) tl
+    match rest with [] -> acc | x :: tl -> go (acc + x) tl
   in
   go 0 lst
 
@@ -93,5 +87,5 @@ let () =
      实测过，非尾递归写法喂一千万都不会溢出（OCaml 5 的主栈会自己长）。
      真要撞出 Stack overflow 得上亿级，那样光列表本身就要几个 GB。
      所以「是不是真的尾递归」由 Claude 读代码来判断。 *)
-  check "sum_tail 一百万个 1" si 1_000_000
-    (fun () -> sum_tail (List.init 1_000_000 (fun _ -> 1)))
+  check "sum_tail 一百万个 1" si 1_000_000 (fun () ->
+      sum_tail (List.init 1_000_000 (fun _ -> 1)))

@@ -19,9 +19,9 @@ type project = { itm : item; fab : fabric }
 
 (* 变体：三种形状，注意三个构造器带的数据个数不一样 *)
 type shape =
-  | Point                        (* 不带数据 *)
-  | Circle of float              (* 带一个：半径 *)
-  | Rect of float * float        (* 带两个：宽、高 *)
+  | Point (* 不带数据 *)
+  | Circle of float (* 带一个：半径 *)
+  | Rect of float * float (* 带两个：宽、高 *)
 
 (* ======================= 你的代码（改这里） ======================= *)
 
@@ -31,10 +31,7 @@ type shape =
    这题只用到「分辨是哪一个构造器」，三个构造器都不带数据，
    所以每条分支直接写结果就行。 *)
 let fabric_name (f : fabric) : string =
-  match f with
-  | Linen -> "亚麻"
-  | Cotton -> "棉"
-  | Wool -> "羊毛"
+  match f with Linen -> "亚麻" | Cotton -> "棉" | Wool -> "羊毛"
 
 (* TODO 2：算面积。圆周率就用 3.14（不要用 Float.pi，测试是按 3.14 算的）。
    Point -> 0.       Circle r -> 3.14 * r * r      Rect (w, h) -> w * h
@@ -42,10 +39,7 @@ let fabric_name (f : fabric) : string =
    ⚠️ 浮点乘法是 *. 不是 *
    这题三条分支正好覆盖「带 0 个 / 1 个 / 2 个数据」三种构造器。 *)
 let area (s : shape) : float =
-  match s with
-  | Point -> 0.
-  | Circle r -> r *. r *. 3.14
-  | Rect (w, h) -> w *. h
+  match s with Point -> 0. | Circle r -> r *. r *. 3.14 | Rect (w, h) -> w *. h
 
 (* TODO 3：只说它是哪一类，不关心里面的数。
    Point -> "点"     Circle _ -> "圆"     Rect _ -> "矩形"
@@ -53,10 +47,7 @@ let area (s : shape) : float =
    注意骨架里用的是 _ ——「这个位置我不要」。
    你只要填三个字符串，体会一下和 TODO 2 的区别。 *)
 let kind (s : shape) : string =
-  match s with
-  | Point -> "点"
-  | Circle _ -> "圆"
-  | Rect _ -> "矩形"
+  match s with Point -> "点" | Circle _ -> "圆" | Rect _ -> "矩形"
 
 (* TODO 4：算一件作品要多少钱。
    规则：底价按款式定，再乘面料系数，结果取整。
@@ -67,18 +58,8 @@ let kind (s : shape) : string =
    最后一行 in 后面的表达式也要你写（提示：底价是 int，系数是 float，
    两个不能直接相乘 —— 知识点 5）。 *)
 let cost (p : project) : int =
-  let base =
-    match p.itm with
-    | Shirt -> 100
-    | Pants -> 150
-    | Hat -> 60
-  in
-  let factor =
-    match p.fab with
-    | Linen -> 1.5
-    | Cotton -> 1.0
-    | Wool -> 2.0
-  in
+  let base = match p.itm with Shirt -> 100 | Pants -> 150 | Hat -> 60 in
+  let factor = match p.fab with Linen -> 1.5 | Cotton -> 1.0 | Wool -> 2.0 in
   int_of_float (factor *. float_of_int base)
 
 (* TODO 5：换面料 —— 返回一件款式不变、面料换成 new_fab 的新作品。
@@ -98,7 +79,6 @@ let check name to_s expected thunk =
 let si = string_of_int
 let sf = string_of_float
 let ss (s : string) = s
-
 let show_fab = function Linen -> "Linen" | Cotton -> "Cotton" | Wool -> "Wool"
 let show_itm = function Shirt -> "Shirt" | Pants -> "Pants" | Hat -> "Hat"
 let sp p = Printf.sprintf "{itm = %s; fab = %s}" (show_itm p.itm) (show_fab p.fab)
@@ -116,13 +96,10 @@ let () =
   check "cost 棉衬衫" si 100 (fun () -> cost { itm = Shirt; fab = Cotton });
   check "cost 羊毛裤" si 300 (fun () -> cost { itm = Pants; fab = Wool });
   check "cost 亚麻帽" si 90 (fun () -> cost { itm = Hat; fab = Linen });
-  check "rewrap 换成 Wool" sp
-    { itm = Shirt; fab = Wool }
-    (fun () -> rewrap { itm = Shirt; fab = Cotton } Wool);
+  check "rewrap 换成 Wool" sp { itm = Shirt; fab = Wool } (fun () ->
+      rewrap { itm = Shirt; fab = Cotton } Wool);
   (* 这条专门验「原件没被改动」 *)
-  check "rewrap 之后原件不变" sp
-    { itm = Shirt; fab = Cotton }
-    (fun () ->
+  check "rewrap 之后原件不变" sp { itm = Shirt; fab = Cotton } (fun () ->
       let p = { itm = Shirt; fab = Cotton } in
       let _ = rewrap p Wool in
       p)

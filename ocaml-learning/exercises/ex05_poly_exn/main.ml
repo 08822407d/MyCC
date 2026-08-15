@@ -24,7 +24,9 @@
 
    提示：参数位置可以直接写元组模式，比如  let f (x, y) = ...
         这里给你标注了类型，你把函数体写出来就行。 *)
-let swap (p : 'a * 'b) : 'b * 'a = let (a, b) = p in (b, a)
+let swap (p : 'a * 'b) : 'b * 'a =
+  let a, b = p in
+  (b, a)
 
 (* TODO 2：造一张有 n 个 x 的表。
    例：repeat 7 3     应得到  [7; 7; 7]
@@ -35,9 +37,7 @@ let swap (p : 'a * 'b) : 'b * 'a = let (a, b) = p in (b, a)
       只能原样放进表里。这正是 'a 的含义。
 
    提示：递归。n <= 0 是基准情形。造表用 :: （ex03 练过）。 *)
-let rec repeat (x : 'a) (n : int) : 'a list =
-   if n <= 0 then []
-   else x :: repeat x (n - 1)
+let rec repeat (x : 'a) (n : int) : 'a list = if n <= 0 then [] else x :: repeat x (n - 1)
 
 (* TODO 3：取表头；表是空的就返回默认值 d。
    例：head_or 0 [10; 20]   应得到  10
@@ -46,10 +46,7 @@ let rec repeat (x : 'a) (n : int) : 'a list =
 
    ⚠️ d 和表里的元素必须是同一个类型（签名里两个 'a 同名）——
       想想为什么必须这样：如果不是，返回值的类型就说不清了。 *)
-let head_or (d : 'a) (lst : 'a list) : 'a =
-  match lst with
-  | [] -> d
-  | x :: _ -> x
+let head_or (d : 'a) (lst : 'a list) : 'a = match lst with [] -> d | x :: _ -> x
 
 (* ─────────────── 第二部分：异常 ─────────────── *)
 
@@ -60,9 +57,7 @@ let head_or (d : 'a) (lst : 'a list) : 'a =
    骨架给了 try 的形状，两处都要你填：
      try 后面   —— 正常情况下要算什么
      -> 右面    —— 出事了返回什么 *)
-let safe_div (a : int) (b : int) : int =
-  try a / b with
-  | Division_by_zero -> 0
+let safe_div (a : int) (b : int) : int = try a / b with Division_by_zero -> 0
 
 (* TODO 5：把字符串转成整数，转不了就返回默认值 d。
    例：to_int_or 0 "42"    应得到  42
@@ -70,9 +65,7 @@ let safe_div (a : int) (b : int) : int =
        to_int_or (-1) ""   应得到  -1
 
    提示：int_of_string "abc" 抛的是 Failure（前面实测过）。 *)
-let to_int_or (d : int) (s : string) : int =
-  try int_of_string s with
-  | Failure _ -> d
+let to_int_or (d : int) (s : string) : int = try int_of_string s with Failure _ -> d
 
 (* TODO 6：取第 n 个元素，取不到就返回默认值 d。
    例：nth_or 0 [10; 20; 30] 1     应得到  20
@@ -86,9 +79,7 @@ let to_int_or (d : int) (s : string) : int =
 
    ⚠️ 这题的 d 和元素都是 'a —— 你的实现里不能对它们做任何类型相关的操作。 *)
 let nth_or (d : 'a) (lst : 'a list) (n : int) : 'a =
-  try List.nth lst n  with
-  | Failure _ -> d
-  | Invalid_argument _ -> d
+  try List.nth lst n with Failure _ -> d | Invalid_argument _ -> d
 
 (* TODO 7：跑一段可能出事的代码，用一句话描述结果。
    f 是一个「调用时才执行」的东西（ex02 的自测里见过这种写法）。
