@@ -29,13 +29,23 @@
 
 | | 内容 | 状态 |
 |---|---|---|
-| B1 | `'a` 多态 | ✅ 讲完 |
+| B1 | `'a` 多态 | ✅ 讲完（笔记 `notes/concepts/13-polymorphism.md`） |
 | B2 | `option` | ⏸️ **用户要求推迟**（我拿 C# nullable 当锚，选错了） |
-| B3 | 异常（基本用法） | ✅ 讲完（用 C 的 `longjmp` 当锚，**别用 C# try-catch**） |
-| B4 | `ex05_poly_exn` 练习 | ✅ **完成，7 题 22 条** |
+| B3 | 异常（基本用法） | ✅ 讲完（用 C 的 `longjmp` 当锚，**别用 C# try-catch**），笔记 `notes/concepts/14-exceptions.md` |
+| B4 | `ex05_poly_exn` 练习 | ✅ **2026-08-11 补完，22/22 全过** |
 
-**⛔ 下一步：C1 `map` / `filter`**，从 **C 的 `qsort` comparator**（把「怎么比较」当参数传进去）切入，
-**别用 C#**。讲完直接做 C4：**把 ex03 那四题用 `map`/`filter` 重写**。
+**✅ C1 `map` / `filter` 已讲完**（2026-08-11），笔记 `notes/concepts/15-map-filter.md`。
+`qsort` comparator 那个切入点很有效，可复用。
+
+**⛔ 下次开工第一件事：收那两行没过手的重写**（他当晚困了没写）——
+
+```ocaml
+let double_all lst  = ???      (* 用 List.map *)
+let count_evens lst = ???      (* 用 List.filter，⚠️ 返回个数不是表，要再套一层 *)
+```
+
+**收完再进 C2（`fold`）** —— 那是这一路唯一预判他会卡的地方，
+**单独一步、单独练习，别和别的混讲**。
 
 **用户 2026-08-08 的明确要求**（这是排 A 阶段的直接原因）：
 

@@ -105,7 +105,7 @@ let nth_or (d : 'a) (lst : 'a list) (n : int) : 'a =
         所以 try 后面那一段【不能】只写 f ()（那是 int），要转成 string。
      ② 兜底的 _ 必须放最后。骨架里已经放好了，体会一下为什么不能往前挪。 *)
 let classify (f : unit -> int) : string =
-  try string_of_int (f ()) with
+  try "ok:" ^ string_of_int (f ()) with
   | Division_by_zero -> "除零"
   | Failure msg -> "失败:" ^ msg
   | Not_found -> "没找到"
