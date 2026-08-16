@@ -12,10 +12,14 @@
 ;                   还没写出递归调用，于是 let rec 的 rec 显得多余而报警——
 ;                   可那个 rec 正是题目要他填出来的东西，先报出来纯属干扰。
 ;                   （2026-08-08 出 ex03_list_recursion 时加的）
+;   -21             「此语句永不返回」。骨架里写 `failwith "TODO"; !acc` 这种占位时
+;                   必然触发（failwith 的类型是 string -> 'a，永不返回）。
+;                   同样是骨架产生的噪音，和题目无关。
+;                   （2026-08-16 出 ex08_list_stdlib 时加的）
 ;
 ; 其余警告保持 dune 的默认集合，该提醒的还会提醒。
 
 (env
  (_
   (flags
-   (:standard -warn-error -a -w -26-27-32-39))))
+   (:standard -warn-error -a -w -26-27-32-39-21))))
