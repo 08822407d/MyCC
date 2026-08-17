@@ -56,7 +56,77 @@ List.fold_left ( + ) 0 lst                                          (* 靠返回
 **`fold` 那版更好**（无可变状态）。**但 `iter` 不是没用**——真做副作用（打印、写文件）时
 它才对，因为那时本来就不需要返回值。
 
-## 19.4 ⛔ 故意没讲的
+## 19.4 ⭐⭐ comparator：`compare` 不是「升序」，以及 `( - )` 的溢出陷阱
+
+> 2026-08-17 补。**起因是用户自己问的**：「OCaml 里只提供了默认升序的 `compare`
+> 而没有降序的，是不是因为建议使用一层薄封装交换两个参数来达到这个目的？」
+> 顺带收掉了**挂了三次才答的那道题**：`List.sort ( - ) [3;1;2]` 能用吗、有没有隐患。
+
+### ① 措辞先纠正：`compare` 本身没有方向
+
+```
+compare : 'a -> 'a -> int
+compare 1 5 → -1      compare 5 5 → 0      compare 5 1 → 1
+```
+
+**它只回答「a 相对 b 如何」，三个值。** 「升序」来自 `List.sort` 的约定
+（文档原话：*positive if the first is greater, negative if the first is smaller*，
+排出 *increasing order*）。**方向 = `compare` 说实话 + `sort` 规定「负数排前面」。**
+→ **要降序就让 comparator 说反话。**
+
+### ② 为什么标准库不给降序版
+
+**降序只是无数派生顺序中的一个**（按 key、按长度、多级排序…）。标准库给的是
+**一个组合子**（收 comparator 的 `sort`）+ **一个规范比较函数**（`compare`），其余自己拼。
+**和 C 完全一样——libc 只给 `qsort`，不给 `qsort_desc`。** 他这个类比是对的。
+
+### ③ 三种降序写法，都对但不等价
+
+```
+List.sort (fun a b -> compare b a) lst        ✅ 交换参数 —— 首选
+List.rev (List.sort compare lst)              ⚠️ 多一趟 O(n)，相等元素相对顺序被翻转
+List.sort (fun a b -> - (compare a b)) lst    ⚠️ 取负 —— 坏习惯，见 ④
+```
+
+**用户猜的「交换两个参数」正是首选**：一趟搞定、意图直白、不碰返回值的数值。
+
+### ④ ⚠️⚠️ `( - )` 当 comparator：能用，但会溢出（**实测**）
+
+```
+List.sort ( - ) [3;1;2]                 →  [1;2;3]              小数字上没问题
+
+compare   max_int min_int               →   1      ✅ 说实话
+( - )     max_int min_int               →  -1      ❌ 回绕成负数，说反话
+
+List.sort compare [min_int; max_int]    →  [min_int; max_int]   ✅
+List.sort ( - )   [min_int; max_int]    →  [max_int; min_int]   ❌ 排反了
+```
+
+根因：`max_int - min_int` 真值是 `2^63-1`，装不进 63 位 int（`Sys.int_size = 63`）。
+
+**这就是 C 里 `return *a - *b` 的经典毛病**，而且 **C 比 OCaml 更糟**：
+
+| | 溢出时 |
+|---|---|
+| **OCaml** | **回绕**，行为确定、可复现。结果错但不失控 |
+| **C** | **有符号溢出是 UB**，编译器可假设它不发生 → `-O2` / `-O0` 可能表现不同 |
+
+**更坏的后果**：comparator 说反话会破坏**传递性**，而排序算法以它为前提 →
+有些实现会读越界或死循环。**「comparator 必须一致」不是建议，是前提。**
+
+**正确写法**：
+
+| | |
+|---|---|
+| ❌ `( - )` / `a - b` | 溢出风险 |
+| ✅ **`compare`** | 只返回 -1/0/1，**永不溢出** |
+| ✅ C 里 | `return (*a > *b) - (*a < *b);` 或显式三分支 |
+
+> **`compare` 安全恰恰因为它只返回三个值** —— 它不说「差多少」，只说「谁大」。
+> **接他的编译器目标**：自己实现比较/排序、或生成比较代码时，
+> **别把「差值」和「顺序」混为一谈。**
+
+## 19.5 ⛔ 故意没讲的
 
 - **所有 `_opt` 版本**（`find_opt` / `nth_opt` / `assoc_opt` …）——它们返回 `option`，
   **那块用户 2026-08-10 要求推迟了**。现在一律用会抛异常的版本 + `try … with`。
@@ -64,7 +134,7 @@ List.fold_left ( + ) 0 lst                                          (* 靠返回
 - `concat_map`、`filter_map`、`assoc`（关联列表）、`combine` / `split`、
   `sort_uniq`、`take_while` / `drop_while` —— 用到再说。
 
-## 19.5 ⚠️ 接异常时别用 `_` 兜底
+## 19.6 ⚠️ 接异常时别用 `_` 兜底
 
 ```ocaml
 try List.find pred lst with Not_found -> "无"        ✅

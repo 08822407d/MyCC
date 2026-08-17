@@ -106,6 +106,25 @@ Error: This constant has type string but an expression was expected of type int
 [`ex05_poly_exn`](../../exercises/ex05_poly_exn/) 第二部分（TODO 4–7）：
 `safe_div` / `to_int_or` / `nth_or` / `classify`。**2026-08-11 全过（22/22）。**
 
+### 14.6.1 ⚠️ 2026-08-17 暴露的一个误会：**「抛」和「接」是两方**
+
+他做 ex08 第 8 题时说「**当时没有仔细观摩怎么抛异常**」——
+但那题**根本不需要他抛**：
+
+> **抛的那一方是 `List.find`**（找不到就抛 `Not_found`）。**他要做的只有「接」。**
+
+而且他交上来的版本是：
+
+```ocaml
+try List.find (fun s -> String.length s > 3) lst with Not_found -> failwith "无"
+                                                                  ^^^^^^^^ 多余
+```
+
+**刚接住 `Not_found`，又抛了个新异常出去。** 自测显示 `Failure("无")`。
+→ **讲法**：`failwith "无"` 是「抛一个内容为『无』的异常」，题目要的是**返回字符串**。
+→ ⚠️ **这是他第三次「`failwith` 忘了删」**（前两次在 ex04、ex08 第 8 题）。
+**零成本自检：写完扫一眼「还有没有 `failwith` 没删」。**
+
 ## 14.7 ⛔ 故意没讲的（**别以为讲过了**）
 
 用户当时明确要求「不深入」，所以下面这些**一律没碰**：

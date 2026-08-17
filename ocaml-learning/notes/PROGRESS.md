@@ -4,7 +4,7 @@
 
 ## 当前位置
 
-> 截至 **2026-08-16 深夜**（台式机 `ubuntu24-pc`）。**下次在笔记本上继续。**
+> 截至 **2026-08-17 晚**（台式机 `ubuntu24-pc`）。
 >
 > ⚠️ **2026-08-15 做过一次分支合并**：08-11 在台式机上补写的三篇概念笔记
 > （`concepts/13` / `14` / `15`）当天没推上去，笔记本 08-14 又往前推了两步，
@@ -51,7 +51,7 @@
 |---|---|---|
 | C1 | `map` / `filter` | ✅ 讲完（锚点：C 的 `qsort` comparator），笔记 [`concepts/15`](concepts/15-map-filter.md) |
 | C1.5 | [`ex06_map_filter`](../exercises/ex06_map_filter/) | ✅ **16 条全过，八题一次通过** |
-| C2 | **`fold`** | ✅ 讲完（`fold_left` / `fold_right`）。⚠️ **还没有概念笔记，下次顺手补 `16-fold.md`** |
+| C2 | **`fold`** | ✅ 讲完（`fold_left` / `fold_right`），笔记 [`concepts/16`](concepts/16-fold.md) |
 | C2.5 | [`ex07_fold`](../exercises/ex07_fold/) | ✅ **19 条全过**（`? :` 已改成 `if … then … else`） |
 
 **C2 的有效讲法（务必复用）**：从**他自己在 ex03 第 4 题手写的 `go acc rest`** 切进去——
@@ -65,12 +65,12 @@
 | C3 + C3.5 | `\|>` / `@@` + **运算符全表** | ✅ 笔记 [`concepts/17`](concepts/17-operators.md) |
 | D1（部分） | **`function`** + **嵌套模式** | ✅ 笔记 [`concepts/18`](concepts/18-function-and-patterns.md) |
 | — | **`List` 模块速查** | ✅ 笔记 [`concepts/19`](concepts/19-list-stdlib.md) |
-| — | 📝 **`ex08_list_stdlib`**（8 题 16 条） | ⬜ **已备好，一题未写** |
+| — | 📝 **`ex08_list_stdlib`**（8 题 16 条） | 🟡 **15/16**（2026-08-17）——第 8 题已改好；**只剩第 5 题 comparator 没交换参数** |
 
-**⛔ 下一步**：先做 `ex08_list_stdlib`，再扫 D1 剩下的
+**⛔ 下一步**：`ex08` 只剩第 5 题（`sort_desc` 要包一层 `fun a b -> compare b a`），改完就扫 D1 剩下的
 **`when` 守卫 / `and` 相互递归 / 可变记录 `<-` / 数组**。
 
-**⚠️ 仍然欠一篇 `16-fold.md`**（C2 的概念笔记，08-14 讲的，一直没补）。
+**✅ `16-fold.md` 已于 2026-08-17 上午在笔记本上补写完** —— `concepts/13–19` 现在齐了，没有缺口。
 
 **🔴 长期有效**（阶段 A 就是为它排的，现在依然管用）—— 用户 2026-08-08 原话：
 

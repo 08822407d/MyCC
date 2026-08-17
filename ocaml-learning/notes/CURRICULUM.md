@@ -111,7 +111,8 @@
 - ✅ **C3 + C3.5 `|>` / `@@` + 运算符全表 —— 2026-08-16 讲完**，笔记 `concepts/17-operators.md`
 - 🟡 **D1 语法小件 —— 进行中**：`function` + 嵌套模式已讲（`concepts/18`）；
   ⬜ 还剩 `when` 守卫 / `and` 相互递归 / 可变记录 `<-` / 数组
-- 🟡 **`List` 模块速查已讲**（`concepts/19`），**⬜ 配套练习 `ex08_list_stdlib` 一题未写**
+- 🟡 **`List` 模块速查已讲**（`concepts/19`，19.4 补了 comparator 与 `( - )` 溢出）；
+  **`ex08_list_stdlib` 15/16** —— 第 8 题已改好，**只剩第 5 题 comparator 没交换参数**
 - ✅ **`concepts/16-fold.md` —— 2026-08-17 补写完成**（用户要求复习 `fold_left`/`fold_right` 时顺手补的）。
   13–19 现在齐了。
 
