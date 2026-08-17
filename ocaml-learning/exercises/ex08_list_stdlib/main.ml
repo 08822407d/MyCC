@@ -48,7 +48,7 @@ let contains_hello (lst : string list) : bool = List.mem "hello" lst
 
    提示：List.sort 要一个 comparator —— 就是 C 里 qsort 那个第四参数。
         升序是 compare，降序把两个参数掉个个儿。 *)
-let sort_desc (lst : int list) : int list = List.sort compare lst
+let sort_desc (lst : int list) : int list = List.sort (fun a b -> compare b a) lst
 
 (* TODO 6：一刀两断，返回 (偶数们, 奇数们)。
    例：split_evens [1; 2; 3; 4]  应得到  ([2; 4], [1; 3])

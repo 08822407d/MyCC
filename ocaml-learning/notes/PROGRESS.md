@@ -65,10 +65,15 @@
 | C3 + C3.5 | `\|>` / `@@` + **运算符全表** | ✅ 笔记 [`concepts/17`](concepts/17-operators.md) |
 | D1（部分） | **`function`** + **嵌套模式** | ✅ 笔记 [`concepts/18`](concepts/18-function-and-patterns.md) |
 | — | **`List` 模块速查** | ✅ 笔记 [`concepts/19`](concepts/19-list-stdlib.md) |
-| — | 📝 **`ex08_list_stdlib`**（8 题 16 条） | 🟡 **15/16**（2026-08-17）——第 8 题已改好；**只剩第 5 题 comparator 没交换参数** |
+| — | 📝 **`ex08_list_stdlib`**（8 题 16 条） | ✅ **16/16 全过**（2026-08-17 晚） |
 
-**⛔ 下一步**：`ex08` 只剩第 5 题（`sort_desc` 要包一层 `fun a b -> compare b a`），改完就扫 D1 剩下的
-**`when` 守卫 / `and` 相互递归 / 可变记录 `<-` / 数组**。
+**ex08 收尾情况**：第 5 题 `sort_desc` 他自己改成了 **`fun a b -> compare b a`** ——
+正是 19.4 里列的**首选**写法（不是 `List.rev`，也不是取负）。第 8 题多余的 `failwith` 也删了。
+
+**⛔ 下一步（2026-08-17 晚定的）**：**重启 B2 `option`**，理由和讲法见
+[`CURRICULUM.md`](CURRICULUM.md) 的「接手第一句话」。**别按老顺序先去扫 D1 剩下的**——
+`option` 现在有现成痛点（ex08 第 8 题那个 `try … with Not_found`），窗口期比 D1 值钱。
+D1 剩下的 **`when` 守卫 / `and` 相互递归 / 可变记录 `<-` / 数组**排在 `option` 之后。
 
 **✅ `16-fold.md` 已于 2026-08-17 上午在笔记本上补写完** —— `concepts/13–19` 现在齐了，没有缺口。
 

@@ -617,17 +617,21 @@ OCaml 里则根本没有「函数名 / 函数值」之分。**他的犹豫挖出
 > 「列表 vs 数组」两个问题，是 `docs/HANDOFF-CHECK.md` 的**交接自检探针**，
 > 用户从未真的作答。**不要把那几轮当成学习表现。**
 
-## 2026-08-17 晚（`ubuntu24-pc`）· ex08 做了 14/16 + comparator 溢出
+## 2026-08-17 晚（`ubuntu24-pc`）· ex08 **16/16 收官** + comparator 溢出
 
-**他终于动笔了**（`ex08_list_stdlib`），一次交七题，再补第八题。**最终 15/16**
-（第 8 题当场按提示改好了，**只剩第 5 题的 comparator**）。
+**他终于动笔了**（`ex08_list_stdlib`），一次交七题，再补第八题，最后补第 5 题。
+**最终 16/16 全过。**
+
+**✅ 第 5 题的收尾值得单独记**：讲完 19.4 之后他改成了
+**`List.sort (fun a b -> compare b a) lst`** —— 三种降序写法里**首选**那个，
+**没有退到 `List.rev` 或取负**。说明当场讲的取舍（一趟 O(n)、不碰返回值的数值）是接住了的。
 
 | 题 | 结果 |
 |---|---|
 | 1 `sum_via_iter` | ✅ `List.iter (fun x -> acc := x + !acc) lst` |
 | 2 `has_negative` / 3 `all_positive` | ✅ **`exists` / `for_all` 没拿反** |
 | 4 `contains_hello` / 6 `split_evens` / 7 `numbered` | ✅ 一次对 |
-| **5 `sort_desc`** | ❌ 写了 `List.sort compare lst` —— **升序，没交换参数** |
+| **5 `sort_desc`** | ⚠️ 初版 `List.sort compare lst` —— **升序，没交换参数**；**讲完 19.4 后自己改对** |
 | **8 `first_long`** | ⚠️ 初版 `with Not_found -> failwith "无"` **多了 failwith**，**指出后立刻改对** |
 
 ### 🚩 两个错还是同一个模式（累计第八、九次）
