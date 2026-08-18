@@ -69,6 +69,32 @@ dune 会直接报 `Cannot create external build directory`，别再试了。
 **起因**：练习题的注释里写着功能描述，**Codeium 直接据此补全出了正确实现**，
 答案送到眼前，练习就白做了。
 
+### ⚠️ 2026-08-18 修正：AI 补全要**按能力**关，不要按扩展名关
+
+**原来那条只关了 Codeium（`codeium.enableConfig`），是【按扩展名】关的 —— 换机器就失效。**
+
+实测 `win10-laptop`：**根本没装 Codeium**，两侧扩展列表里一个都没有，
+那条设置完全空转；真正在补全的是别的扩展
+（`openai.chatgpt` / `anthropic.claude-code` 都能提供 inline 补全）。
+**而且失效得悄无声息** —— 只会看到「怎么又补上了」。
+
+**改法：关 VS Code 的统一入口 `editor.inlineSuggest`。**
+所有 ghost text 补全（Copilot / Codex / Codeium / Tabnine …）都从这里走：
+
+```jsonc
+"[ocaml]":           { "editor.inlineSuggest.enabled": false },
+"[ocaml.interface]": { "editor.inlineSuggest.enabled": false }
+```
+
+- 只对 `.ml` / `.mli` 生效，其他语言不受影响
+- **不管装的是哪家 AI 扩展都挡得住，换机器不用改**
+- 不影响 OCaml LSP 的补全（那个只提示类型，不写算法）
+- 不影响在聊天面板里主动提问，只挡自动弹出来的
+- 改完要 `Developer: Reload Window` 才生效
+
+原来那条 `codeium.enableConfig` 保留着 —— 装了 Codeium 的机器上它关得更彻底
+（连补全请求都不发）。两条并存不冲突。
+
 **做法**：`ocaml-learning/.vscode/settings.json`
 
 ```jsonc

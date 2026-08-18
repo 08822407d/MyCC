@@ -75,7 +75,95 @@ Claude 起不了它（需要交互终端），**下面几条是给人用的**：
 写 `main.ml` 时不需要。跟着公开课敲完 REPL 回头写文件时到处撒 `;;`，就是在这儿混的。
 退出用 `#quit;;` 或 Ctrl-D。
 
+## ⚠️ WSL Remote 模式的两个连带问题（2026-08-18 全部实测，**配置尚未验证生效**）
+
+> 起因：为了让 `ocamllsp` 跑起来，用 `WSL: Reopen Folder in WSL` 重开之后
+> **Claude Code 和 ChatGPT/Codex 两个扩展都不见了**，装进 WSL 之后又登录失败。
+> **下面的排查结论都是实测的；但修法当天没来得及验证，明天继续。**
+
+### 一、扩展分两侧，Remote 模式下要各装各的
+
+| 类别 | 装在哪 | 例子 |
+|---|---|---|
+| **UI 扩展** | Windows 侧 `~/.vscode/extensions` | 主题、键位、Vim |
+| **Workspace 扩展** | **WSL 侧 `~/.vscode-server/extensions`** | 语言服务器、**Claude Code**、**ChatGPT/Codex** |
+
+**不是丢了，是从来没装进 WSL 那一侧。** 装法：扩展面板里找到它 → 蓝色按钮
+`Install in WSL: Ubuntu`；或在**连着 WSL 的内置终端**里 `code --install-extension <id>`。
+
+### 二、代理：Win10 上 WSL **拿不到** Windows 的 `127.0.0.1` 代理
+
+**实测事实（2026-08-18，本机）：**
+
+```
+Windows 代理     ProxyEnable=1, ProxyServer=127.0.0.1:7890
+监听 7890 的进程  verge-mihomo，监听地址【只有 127.0.0.1】← 关键
+防火墙           Domain/Private/Public 三个 Enabled 全是 False ← 不背这个锅
+WSL 网络模式     默认 NAT（没有 ~/.wslconfig）
+Windows 版本     Win10 19045 → 【用不了 networkingMode=mirrored】（那要 Win11）
+Windows 主机在 WSL 里的地址   172.18.176.1（= 默认网关 = resolv.conf 的 nameserver）
+从 WSL 连 172.18.176.1:7890   ❌ 拒绝
+```
+
+> **NAT 模式下 WSL 和 Windows 是两台机器，`127.0.0.1` 各指各的。**
+> 把 Windows 的代理环境变量抄进 WSL 完全没用。
+
+**直连可达性（从 WSL，不走代理）：**
+
+```
+api.github.com          ✅ 200      claude.ai              ✅ 302
+console.anthropic.com   ✅ 301      api.anthropic.com      ✅ 403（能到，只是没凭证）
+chatgpt.com             ❌ 不通      api.openai.com        ❌ 不通
+```
+
+→ **Anthropic 全通、OpenAI 不通。所以两个扩展登录失败的原因不一样。**
+
+### 三、两条修法（**都还没验证**）
+
+**Claude Code —— 不需要代理。** 网络层是通的，登录失败大概率是 **OAuth 回调**：
+浏览器在 Windows 上打开，回调地址 `http://localhost:PORT` 指的是 **Windows 的 localhost**，
+而扩展在 **WSL** 的 localhost 上监听——两个不是同一个。
+→ **绕开办法**：WSL 终端里跑 `claude`，用 `/login` 走「开链接 → 手动贴授权码」那条路，
+不依赖回调端口。登录态存在 WSL 的 `~/.claude/`，VS Code 扩展会复用。
+
+**Codex/ChatGPT —— 需要代理，两步：**
+
+1. **Clash Verge 开「允许局域网连接」(Allow LAN)** → 监听地址从 `127.0.0.1:7890`
+   变成 `0.0.0.0:7890`。**防火墙全关着，不用另加规则。**
+2. WSL 的 `~/.bashrc` 里动态指过去（⚠️ **NAT 模式网关 IP 会变，别写死**）：
+
+   ```bash
+   export HOST_IP=$(ip route show default | awk '{print $3}')
+   export http_proxy="http://$HOST_IP:7890"
+   export https_proxy="$http_proxy"
+   export all_proxy="socks5://$HOST_IP:7890"
+   export no_proxy="localhost,127.0.0.1,::1"
+   ```
+
+   ⚠️ **VS Code 的远程扩展宿主不一定读 `.bashrc`**。还不行就在 **Remote [WSL] 作用域**
+   加 `"http.proxy": "http://172.18.176.1:7890"` —— **那条只能写死 IP**，
+   WSL 重启后网关变了要跟着改。这是 Win10 的结构性限制。
+
+### 四、⚠️ 排查时踩的老坑（第二次了）
+
+**变量穿过 `wsl -d Ubuntu -- bash -lc '…'` 会被吃掉**（`$GW`、`$NS` 全成空串）。
+第一次是 2026-08-07 查 gcc/nasm 时踩的，**这次又踩了一遍**。
+→ **要在 WSL 里跑带变量的脚本，就写成 `.sh` 文件再 `bash 路径` 执行**，别塞进 `-lc`。
+
 ## VS Code
+
+> **⚠️ 2026-08-18 实测确认（这台机器上反复踩）**：只要是用 **Windows 模式**打开文件夹，
+> **悬停看类型、跳转、库函数文档说明全都不工作** —— 因为扩展跑在 Windows 侧，
+> 而 `ocamllsp` 只存在于 WSL 里（`where ocamllsp` 在 Windows 上返回空）。
+> **两侧的扩展都装好了**（Windows `~/.vscode/extensions`、
+> WSL `~/.vscode-server/extensions` 都有 `ocamllabs.ocaml-platform-2.3.0`），
+> **问题只在于用哪一侧打开**。
+> → `F1` → `WSL: Reopen Folder in WSL`，路径变成 `/mnt/d/MyCC/ocaml-learning`，
+> LSP 立刻接上，顺带内置终端也直接是 Ubuntu。
+>
+> **「库函数功能说明」不需要装任何新插件** —— `ocamllsp` 的悬停提示本来就带
+> `.mli` 里的文档注释。想要离线全量文档站：WSL 里 `opam install odig` 然后 `odig doc`。
+
 
 - **Windows 侧**装 `ms-vscode-remote.remote-wsl`
 - **WSL 侧**装 `ocamllabs.ocaml-platform`（2.3.0）← 只装 Windows 侧不管用

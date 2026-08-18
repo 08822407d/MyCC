@@ -1,20 +1,34 @@
 {
-  // ── 只关掉 OCaml 源码文件里的 AI 代码补全 ────────────────────────────
+  // ── 关掉 OCaml 源码里的「AI 级」代码补全 ────────────────────────────
   //
-  // 起因（2026-08-08）：练习题的注释里写了功能描述，Codeium 直接据此
-  // 补全出了正确实现，等于把答案送到眼前，练习就白做了。
+  // 起因（2026-08-08）：练习题的注释里写了功能描述，AI 补全直接据此
+  // 写出了正确实现，答案送到眼前，练习就白做了。
   //
-  // codeium.enableConfig 是按「语言 ID」配置的对象，"*" 是默认值。
-  // 这里只关 ocaml / ocaml.interface，**其他语言完全不受影响**。
+  // ⚠️ 2026-08-18 修正（实测）：原先只关了 Codeium，那是【按扩展名】关的 ——
+  //    换一台机器、换一个 AI 扩展就失效。
+  //    win10-laptop 上【根本没装 Codeium】，`codeium.enableConfig` 是空转的；
+  //    真正在补全的是别的扩展（openai.chatgpt / anthropic.claude-code
+  //    都能提供 inline 补全）。
   //
-  // ⚠️ 没有关掉 ocamllabs.ocaml-platform（OCaml LSP）自带的补全 ——
-  //    那个是基于类型和已有标识符的，只会提示「这里能填什么类型的东西」，
-  //    不会替你把算法写出来。对学习有帮助，留着。
+  // 改成【按能力】关：editor.inlineSuggest 是 VS Code 提供 ghost text 的
+  // 统一入口，所有 inline 补全（Copilot / Codex / Codeium / Tabnine …）
+  // 都从这里走。关掉它，不管装的是哪家都不会再出现。
   //
-  // 语言 ID 来自 ocamllabs.ocaml-platform：
-  //   ocaml            → .ml
-  //   ocaml.interface  → .mli
-  //   （以后写 .mll / .mly 时如果也想关，加 ocaml.ocamllex / ocaml.menhir）
+  // ✅ 只对 ocaml / ocaml.interface 生效，其他语言完全不受影响。
+  // ✅ 不影响 ocamllabs.ocaml-platform（OCaml LSP）的补全 —— 那个基于类型
+  //    和已有标识符，只提示「这里能填什么类型的东西」，不会替你写算法。
+  // ✅ 也不影响聊天面板里主动提问 —— 只挡自动弹出来的那种。
+  //
+  // 语言 ID 来自 ocamllabs.ocaml-platform：ocaml → .ml，ocaml.interface → .mli
+  "[ocaml]": {
+    "editor.inlineSuggest.enabled": false
+  },
+  "[ocaml.interface]": {
+    "editor.inlineSuggest.enabled": false
+  },
+
+  // 保留这条：装了 Codeium 的机器（ubuntu24-pc）上它仍然有用，
+  // 而且关得更彻底（连补全请求都不发）。两条并存，互不冲突。
   "codeium.enableConfig": {
     "*": true,
     "ocaml": false,

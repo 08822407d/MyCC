@@ -54,13 +54,15 @@ let sort_desc (lst : int list) : int list = List.sort (fun a b -> compare b a) l
    例：split_evens [1; 2; 3; 4]  应得到  ([2; 4], [1; 3])
 
    ⚠️ 返回类型是【元组】，有个函数一次就能给你两张表。 *)
-let split_evens (lst : int list) : int list * int list = List.partition (fun x -> x mod 2 = 0) lst
+let split_evens (lst : int list) : int list * int list =
+  List.partition (fun x -> x mod 2 = 0) lst
 
 (* TODO 7：给每个元素加上下标前缀。
    例：numbered ["a"; "b"]  应得到  ["0:a"; "1:b"]
 
    提示：普通 map 拿不到下标，有个带 i 的版本。字符串拼接用 ^ *)
-let numbered (lst : string list) : string list = List.mapi (fun i x -> string_of_int i ^ ":" ^ x) lst
+let numbered (lst : string list) : string list =
+  List.mapi (fun i x -> string_of_int i ^ ":" ^ x) lst
 
 (* TODO 8：找出第一个长度 > 3 的字符串；一个都没有就返回 "无"。
    例：first_long ["ab"; "abcd"; "xyz"]  应得到  "abcd"
@@ -100,8 +102,11 @@ let () =
   check "contains_hello [hi]" sb false (fun () -> contains_hello [ "hi" ]);
   check "sort_desc [3;1;2]" sl [ 3; 2; 1 ] (fun () -> sort_desc [ 3; 1; 2 ]);
   check "sort_desc []" sl [] (fun () -> sort_desc []);
-  check "split_evens [1;2;3;4]" sp ([ 2; 4 ], [ 1; 3 ]) (fun () -> split_evens [ 1; 2; 3; 4 ]);
+  check "split_evens [1;2;3;4]" sp
+    ([ 2; 4 ], [ 1; 3 ])
+    (fun () -> split_evens [ 1; 2; 3; 4 ]);
   check "numbered [a;b]" ssl [ "0:a"; "1:b" ] (fun () -> numbered [ "a"; "b" ]);
   check "numbered []" ssl [] (fun () -> numbered []);
-  check "first_long [ab;abcd;xyz]" ss "abcd" (fun () -> first_long [ "ab"; "abcd"; "xyz" ]);
+  check "first_long [ab;abcd;xyz]" ss "abcd" (fun () ->
+      first_long [ "ab"; "abcd"; "xyz" ]);
   check "first_long [ab;xyz]  [找不到]" ss "无" (fun () -> first_long [ "ab"; "xyz" ])

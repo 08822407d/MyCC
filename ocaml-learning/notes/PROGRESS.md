@@ -129,6 +129,26 @@ D1 剩下的 **`when` 守卫 / `and` 相互递归 / 可变记录 `<-` / 数组**
 
 ---
 
+### 🔵 2026-08-18（`win10-laptop`）· `option` 讲完 + 大半天环境排查
+
+| | 内容 | 状态 |
+|---|---|---|
+| B2 | **`option`** | ✅ **讲完**（痛点切入：他 ex08 第 8 题那行 `try List.find … with Not_found`） |
+| B2.5 | [`ex09_option`](../exercises/ex09_option/) | ✅ **18 条全过**（7 题） |
+
+**只讲了 `Some` / `None` / `match` 三样**，⛔ 按计划没写 `type 'a option = …`（那是 D1.5）。
+**全程没碰 C# nullable**，改用 C 的 `atoi("abc")` 分不出「失败」和「值就是 0」。
+
+**⬜ 欠三处回填**（下次开工先做，都是小活）：
+`concepts/20-option.md`（新）、`concepts/19` 的 19.5（`_opt` 系列）、
+`concepts/14` 的 14.7（**异常 vs option 怎么选**——前置终于齐了）。
+
+**🔧 环境（占了当天大半时间，未完）**：切 VS Code 的 WSL 模式让 `ocamllsp` 跑起来，
+连带出扩展分侧、WSL 拿不到 Windows 代理两个问题。
+**结论实测并记在 `docs/env/win10-laptop.md`，修法没验证，明天继续。**
+另外把「AI 补全关不掉」的根因查清了：**原来那条只关 Codeium 的设置在这台机器上空转
+（根本没装 Codeium）**，已改成按能力关（`editor.inlineSuggest`，语言级），见 `docs/env/COMMON.md`。
+
 ## 已讲知识点
 
 ### 1. `let` 是绑定，不是变量声明

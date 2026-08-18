@@ -36,7 +36,8 @@ let product (lst : int list) : int = List.fold_left (fun acc x -> acc * x) 1 lst
 
    ⚠️ ex06 里你用的是 filter + length（两遍遍历）。
       这次用 fold 一遍走完，体会一下差别。 *)
-let count_evens (lst : int list) : int = List.fold_left (fun acc x -> if x mod 2 = 0 then acc + 1 else acc) 0 lst
+let count_evens (lst : int list) : int =
+  List.fold_left (fun acc x -> if x mod 2 = 0 then acc + 1 else acc) 0 lst
 
 (* ─────────── 第二部分：累加器的类型 ≠ 元素的类型 ─────────── *)
 
@@ -45,7 +46,8 @@ let count_evens (lst : int list) : int = List.fold_left (fun acc x -> if x mod 2
        total_length []                应得到  0
 
    ⚠️ 元素是 string，累加器是 int —— 签名里 'acc 和 'a 是两个独立的洞。 *)
-let total_length (lst : string list) : int = List.fold_left (fun acc s -> acc + String.length s) 0 lst
+let total_length (lst : string list) : int =
+  List.fold_left (fun acc s -> acc + String.length s) 0 lst
 
 (* TODO 5：是不是所有元素都大于 0。
    例：all_positive [3; 5; 1]   应得到  true
@@ -53,7 +55,8 @@ let total_length (lst : string list) : int = List.fold_left (fun acc s -> acc + 
        all_positive []          应得到  true      （空表算「都满足」）
 
    ⚠️ 累加器是 bool。想想起点填什么才能让空表得到 true。 *)
-let all_positive (lst : int list) : bool = List.fold_left (fun acc x -> acc && (x > 0)) true lst
+let all_positive (lst : int list) : bool =
+  List.fold_left (fun acc x -> acc && x > 0) true lst
 
 (* ─────────── 第三部分：累加器是一张表 ─────────── *)
 
@@ -64,7 +67,7 @@ let all_positive (lst : int list) : bool = List.fold_left (fun acc x -> acc && (
    ⚠️ 这题几乎白送 —— 我们刚讲过 fold_left + :: 天然产出倒序。
       起点填空表，每次把新元素挂到累加器头上。
    ⛔ 不许直接调用 List.rev（那是作弊）。 *)
-let my_rev (lst : 'a list) : 'a list = List.fold_left (fun acc x -> x::acc) [] lst
+let my_rev (lst : 'a list) : 'a list = List.fold_left (fun acc x -> x :: acc) [] lst
 
 (* TODO 7：把每个元素乘以 2，【保持原顺序】。
    例：double_all [1; 2; 3]  应得到  [2; 4; 6]
@@ -74,7 +77,8 @@ let my_rev (lst : 'a list) : 'a list = List.fold_left (fun acc x -> x::acc) [] l
         (b) fold_right 一步到位，不用 rev
       两条都写得出来的话，可以都试试，看哪个读起来更顺。
    ⛔ 不许用 List.map。 *)
-let double_all (lst : int list) : int list = List.fold_right (fun x acc -> (x * 2)::acc) lst []
+let double_all (lst : int list) : int list =
+  List.fold_right (fun x acc -> (x * 2) :: acc) lst []
 
 (* ─────────── 第四部分：综合 ─────────── *)
 
@@ -86,7 +90,8 @@ let double_all (lst : int list) : int list = List.fold_right (fun x acc -> (x * 
    ⚠️ 累加器就是「到目前为止见过的最大值」，起点就是 d。
    ⚠️ 元素类型是 'a —— 但 > 在 OCaml 里本来就是多态的（'a -> 'a -> bool），
       所以这题照样能写出来。 *)
-let max_or (d : 'a) (lst : 'a list) : 'a = List.fold_left (fun acc x -> if x > acc then x else acc) d lst
+let max_or (d : 'a) (lst : 'a list) : 'a =
+  List.fold_left (fun acc x -> if x > acc then x else acc) d lst
 
 (* ===================== 分隔线以下别改 ===================== *)
 
@@ -114,7 +119,8 @@ let () =
   check "count_evens [1;3]" si 0 (fun () -> count_evens [ 1; 3 ]);
 
   print_endline " -- 累加器类型 ≠ 元素类型 --";
-  check "total_length [\"a\";\"abc\";\"\"]" si 4 (fun () -> total_length [ "a"; "abc"; "" ]);
+  check "total_length [\"a\";\"abc\";\"\"]" si 4 (fun () ->
+      total_length [ "a"; "abc"; "" ]);
   check "total_length []" si 0 (fun () -> total_length []);
   check "all_positive [3;5;1]" sb true (fun () -> all_positive [ 3; 5; 1 ]);
   check "all_positive [3;-5;1]" sb false (fun () -> all_positive [ 3; -5; 1 ]);
