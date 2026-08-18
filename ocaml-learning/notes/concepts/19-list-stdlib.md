@@ -126,15 +126,63 @@ List.sort ( - )   [min_int; max_int]    →  [max_int; min_int]   ❌ 排反了
 > **接他的编译器目标**：自己实现比较/排序、或生成比较代码时，
 > **别把「差值」和「顺序」混为一谈。**
 
-## 19.5 ⛔ 故意没讲的
+## 19.5 `_opt` 系列：同一件事的两个版本
 
-- **所有 `_opt` 版本**（`find_opt` / `nth_opt` / `assoc_opt` …）——它们返回 `option`，
-  **那块用户 2026-08-10 要求推迟了**。现在一律用会抛异常的版本 + `try … with`。
-  → **`option` 重启之后要回来补这一节**，`find_opt` 比 `try List.find` 顺得多。
-- `concat_map`、`filter_map`、`assoc`（关联列表）、`combine` / `split`、
-  `sort_uniq`、`take_while` / `drop_while` —— 用到再说。
+> 2026-08-19 补。**这一节从 2026-08-16 起整节留白**，因为当时 `option` 还没讲
+> （用户 2026-08-10 要求推迟）。2026-08-18 讲完 B2 之后回填。
+> 配套：[`20-option.md`](20-option.md)、[`14-exceptions.md`](14-exceptions.md) 的 14.7。
 
-## 19.6 ⚠️ 接异常时别用 `_` 兜底
+**标准库里很多查找类函数有两个版本**：抛异常的，和返回 `option` 的。
+
+| 抛异常 | 返回 `option` | 找不到时 |
+|---|---|---|
+| `List.find` | **`List.find_opt`** | `Not_found` → `None` |
+| `List.nth` | **`List.nth_opt`** | `Failure "nth"` → `None`（⚠️ 见下） |
+| `List.assoc` | **`List.assoc_opt`** | `Not_found` → `None` |
+| `int_of_string` | **`int_of_string_opt`** | `Failure` → `None` |
+
+实测：
+
+```
+List.find_opt (fun x -> x > 2) [1;2;3]        →  Some 3
+List.nth_opt [1;2] 5                          →  None
+List.assoc_opt "b" [("a",1);("b",2)]          →  Some 2
+List.assoc_opt "z" [("a",1)]                  →  None
+int_of_string_opt "abc"                       →  None
+```
+
+### 📌 默认选 `_opt` 版本
+
+`ex09` 第 1 题就是把 ex08 那行重写一遍，**对照非常直白**：
+
+```ocaml
+try List.find (fun s -> String.length s > 3) lst with Not_found -> "无"        (* ex08 *)
+
+match List.find_opt (fun s -> String.length s > 3) lst with                    (* ex09 *)
+| Some s -> s | None -> "无"
+```
+
+**长度差不多，差别在「写错了谁发现」** —— 异常名写错编译器不管，`match` 漏一支它会报
+`Warning 8` 并点名 `None`。完整论证见 [`20-option.md`](20-option.md) 的 20.6。
+
+### ⚠️⚠️ `_opt` 不等于「所有失败都变 None」
+
+```
+List.nth_opt [1;2] 5      →  None                          表太短
+List.nth_opt [1;2] (-1)   →  Invalid_argument "List.nth"   下标为负（实测，仍然抛）
+```
+
+**同一个函数，两种失败，两种处理方式。** 判据（**正常情况 vs 调用方违约**）
+写在 [`14-exceptions.md`](14-exceptions.md) 的 **14.7**，那是这一节的另一半。
+
+## 19.6 ⛔ 故意没讲的
+
+- `Option` 模块（`Option.value ~default` / `Option.map` / `Option.bind`）——
+  实测可用，但 2026-08-18 一个都没提，见 `20-option.md` 20.8
+- `concat_map`、`filter_map`、`assoc`（关联列表本身）、`combine` / `split`、
+  `sort_uniq`、`take_while` / `drop_while` —— 用到再说
+
+## 19.7 ⚠️ 接异常时别用 `_` 兜底
 
 ```ocaml
 try List.find pred lst with Not_found -> "无"        ✅
