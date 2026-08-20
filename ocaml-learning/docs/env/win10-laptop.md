@@ -75,7 +75,32 @@ Claude 起不了它（需要交互终端），**下面几条是给人用的**：
 写 `main.ml` 时不需要。跟着公开课敲完 REPL 回头写文件时到处撒 `;;`，就是在这儿混的。
 退出用 `#quit;;` 或 Ctrl-D。
 
-## ⚠️ WSL Remote 模式的两个连带问题（2026-08-18 全部实测，**配置尚未验证生效**）
+## ✅ WSL Remote 模式的两个连带问题（2026-08-18 排查，**2026-08-20 修法已验证**）
+
+> **2026-08-20 更新：网络链路已打通并实测确认。** 下面保留原始排查过程，
+> **修正与验证结果见本节末尾的「2026-08-20 收尾」。**
+
+### 🔴 2026-08-18 的一处误判（重要，别再犯）
+
+**当时的结论「Claude Code 不需要代理，Anthropic 域名从 WSL 直连全通」是错的。**
+
+错因：**只测了 `api.anthropic.com` 和 `claude.ai`，漏了 OAuth 真正用的第三个域名。**
+
+```
+api.anthropic.com     403  ✅   DNS → 160.79.104.10（真实 IP）
+claude.ai             302  ✅
+platform.claude.com   000  ❌   DNS → 31.13.95.38（Meta 段）+ 2001::（Teredo 段）← 污染
+claude.com            000  ❌
+```
+
+`platform.claude.com` 是 `MANUAL_REDIRECT_URL` 和 `TOKEN_URL` 的宿主，
+**DNS 污染 + SNI 阻断双重挡着**（强行 pin 到真实 IP 后 TLS Client Hello 仍被 RST）。
+→ **两条线都绕不开代理。**
+
+> 🚩 **教训：测「某家服务通不通」时，要测它【实际用到的每一个域名】，
+> 不能拿主域名的可达性代表全部。** OAuth / 计费 / 遥测常常在不同域名上。
+
+## ⚠️（存档）2026-08-18 的原始排查
 
 > 起因：为了让 `ocamllsp` 跑起来，用 `WSL: Reopen Folder in WSL` 重开之后
 > **Claude Code 和 ChatGPT/Codex 两个扩展都不见了**，装进 WSL 之后又登录失败。
@@ -143,6 +168,64 @@ chatgpt.com             ❌ 不通      api.openai.com        ❌ 不通
    ⚠️ **VS Code 的远程扩展宿主不一定读 `.bashrc`**。还不行就在 **Remote [WSL] 作用域**
    加 `"http.proxy": "http://172.18.176.1:7890"` —— **那条只能写死 IP**，
    WSL 重启后网关变了要跟着改。这是 Win10 的结构性限制。
+
+### 五、✅ 2026-08-20 收尾：修法与验证结果
+
+**根因是三层叠加，缺一不可：**
+
+| # | 问题 | 证据 |
+|---|---|---|
+| 1 | Clash Verge 只绑回环 | `config.yaml` L7 `allow-lan: false`；监听 `127.0.0.1:7890` |
+| 2 | VS Code 把 `http.proxy` **原样下发**到 WSL | 用户设置 `"http.proxy": "http://127.0.0.1:7890"` 是 **APPLICATION 作用域**；<br>下发后那个 `127.0.0.1` 指 WSL 自己 → 日志 `ECONNREFUSED 127.0.0.1:7890` |
+| 3 | Claude Code 扩展**没有代理配置项** | 15 个配置项里零个代理相关，只能靠 `claudeCode.environmentVariables` 注入 |
+
+**第 0 步（用户 GUI）**：Clash Verge → 设置 → Clash 设置 → **开「允许局域网连接」**。
+改完 `config.yaml` L7 变 `allow-lan: true`，监听地址变成 `::`（双栈）。
+⛔ 别改 `clash-verge.yaml` / `profiles/*.yaml` —— 每次启动由 `config.yaml` 合成覆盖。
+
+**第 1 步（可代跑）**：新建 `/home/cheyh/.vscode-server/data/Machine/settings.json`：
+
+```jsonc
+{
+  "http.useLocalProxyConfiguration": false,   // 不加这条，下面几条被 Windows 侧压着
+  "http.proxy": "http://172.18.176.1:7890",
+  "http.proxyStrictSSL": true,                // ⚠️ 安全项，见下
+  "claudeCode.environmentVariables": [
+    { "name": "HTTP_PROXY",  "value": "http://172.18.176.1:7890" },
+    { "name": "HTTPS_PROXY", "value": "http://172.18.176.1:7890" },
+    { "name": "NO_PROXY",    "value": "localhost,127.0.0.1,::1" }
+  ]
+}
+```
+
+⚠️ **`http.proxyStrictSSL` 是安全项**：Windows 侧是 `false`，下发到 WSL 会让扩展给子进程注入
+`NODE_TLS_REJECT_UNAUTHORIZED=0`（**等于在 WSL 里关掉 TLS 校验**）。远程侧设回 `true` 挡住。
+
+⚠️ `172.18.176.1` 是 NAT 网段的网关，**WSL 重启可能变**。变了改这个文件，
+或先跑 `wsl -d Ubuntu -- bash -lc 'ip -4 route show default'` 确认。
+
+**第 2 步（用户）**：`Developer: Reload Window` → 登录。
+⚠️ **登录不走 localhost 回调**（扩展里 `asExternalUri` 出现 0 次，
+`registerUriHandler` 只处理 `/install-plugin` 和 `/open`）。
+redirect 是远程页面 `https://platform.claude.com/oauth/code/callback`，
+**授权后页面给一段 code，手动贴回**——这是默认行为，不用找端口转发开关。
+
+**✅ 第 0 步之后的实测（2026-08-20）：**
+
+```
+端口连通性 172.18.176.1:7890        ✅
+platform.claude.com   直连 000 → 走代理 200
+claude.com            直连 000 → 走代理 200
+chatgpt.com           直连 000 → 走代理 403（Cloudflare 挡 curl，属正常）
+api.openai.com        直连 000 → 走代理 421
+POST /v1/oauth/token  走代理 400（空 body 的正常响应，不再是 000）
+```
+
+**⛔ 安全提醒**：`allow-lan` 打开后 7890 **同时暴露在物理网卡上，且代理无密码**。
+要收紧就在 `config.yaml` 把 `bind-address` 设成 `172.18.176.1`（只对 WSL 那张网卡开）。
+
+**备选（不动代理）**：`api.anthropic.com` 从 WSL 直连可达，注入 `ANTHROPIC_API_KEY` 即可，
+全程不碰 `platform.claude.com`。**代价：走 API 计费，不吃订阅额度。**
 
 ### 四、⚠️ 排查时踩的老坑（第二次了）
 

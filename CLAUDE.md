@@ -70,8 +70,15 @@ bash ./ocaml-learning/scripts/ocaml.sh <子命令>
 
 | 代号 | 机器 | 判据 |
 |---|---|---|
-| `win10-laptop` | Windows 10 笔记本，OCaml 装在 WSL2 里 | 会话环境 `Platform: win32` |
-| `ubuntu24-pc` | Ubuntu 24.04 台式机，原生 Linux | 会话环境 `Platform: linux` |
+| `win10-laptop` | Windows 10 笔记本，OCaml 装在 WSL2 里 | `ocaml.sh platform` 输出 `win-gitbash` 或 **`wsl`** |
+| `ubuntu24-pc` | Ubuntu 24.04 台式机，原生 Linux | `ocaml.sh platform` 输出 `linux` |
+
+> **2026-08-20：别再用会话的 `Platform:` 字段判断。**
+> 笔记本的 VS Code 切到 WSL 远程模式之后，**它报的也是 `Platform: linux`**，
+> 于是 `linux` 不再唯一对应台式机。
+> 判据改成跑 `bash ./ocaml-learning/scripts/ocaml.sh platform`，
+> 它靠 `/proc/version` 里有没有 `microsoft` 区分，不受编辑器模式影响。
+> 详见 `ocaml-learning/CLAUDE.md` 第 0 节。
 
 两台不会同时用。**涉及路径、磁盘、编辑器扩展等平台相关内容前，先确认在哪台机器上**，
 细节见 `ocaml-learning/docs/env/`。

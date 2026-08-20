@@ -18,18 +18,30 @@
 
 **这件事必须先确认，再执行任何跟平台有关的操作。** 三种办法，从便宜到贵：
 
-1. **看会话开头的环境信息里的 `Platform:` 字段**
-   - `win32` → `win10-laptop`
-   - `linux` → `ubuntu24-pc`
-   这是免费的，不用跑命令，绝大多数情况用这个就够了。
+> **2026-08-20 判据改了。** 原来第一条是「看会话的 `Platform:` 字段」，
+> 但笔记本的 VS Code 切到 **WSL 远程模式**之后**也报 `Platform: linux`** ——
+> `linux` 不再唯一对应台式机。**现在以命令为准。**
 
-2. **不确定就跑一条命令问**：
+1. **跑一条命令（唯一可靠）**：
 
    ```bash
    bash ./scripts/ocaml.sh platform
    ```
 
-   输出 `wsl ...` 是笔记本，`linux ...` 是台式机。
+   | 输出 | 机器 |
+   |---|---|
+   | `win-gitbash` | `win10-laptop`（Windows 的 Git Bash，脚本会自动转进 WSL） |
+   | **`wsl`** | **`win10-laptop`**（VS Code 的 WSL 远程模式，或直接在 WSL 里） |
+   | `linux` | `ubuntu24-pc`（原生 Linux） |
+
+   它靠 `/proc/version` 里有没有 `microsoft` 区分 WSL 和原生 Linux，**不受编辑器模式影响**。
+
+2. **会话的 `Platform:` 字段只有一半有效**：
+   - `win32` → 确定是 `win10-laptop`
+   - `linux` → **无法区分**，必须跑上面那条命令
+
+   旁证（不如命令权威，但可佐证）：工作目录是 `/mnt/d/…` 或 `d:\MyCC\…` → 笔记本；
+   `/home/cheyh/projs/…` → 台式机。`/mnt/c` 存在也说明是 WSL。
 
 3. `bash ./scripts/ocaml.sh check` —— 顺带把工具链版本一起列出来。
 
