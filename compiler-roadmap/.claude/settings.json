@@ -1,0 +1,20 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "permissions": {
+    "allow": [
+      "Bash(bash ../ocaml-learning/scripts/ocaml.sh platform)",
+      "Bash(bash ../ocaml-learning/scripts/ocaml.sh check)",
+
+      "Bash(git status *)",
+      "Bash(git log *)",
+      "Bash(git diff *)",
+      "Bash(git show *)",
+      "Bash(git branch *)",
+      "Bash(git ls-files *)",
+      "Bash(git ls-remote *)",
+      "Bash(git remote -v)",
+
+      "Write(./scratch/*)"
+    ]
+  }
+}
