@@ -1,0 +1,21 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "permissions": {
+    "allow": [
+      "Bash(dune build*)",
+      "Bash(dune exec*)",
+      "Bash(dune runtest*)",
+      "Bash(dune clean)",
+      "Bash(bash ./test/run.sh)",
+      "Bash(./test/run.sh)",
+      "Bash(gcc -E *)",
+      "Bash(gcc -fsyntax-only *)",
+      "Bash(git status *)",
+      "Bash(git log *)",
+      "Bash(git diff *)",
+      "Bash(git show *)",
+      "Bash(git branch *)",
+      "Bash(git ls-files *)"
+    ]
+  }
+}

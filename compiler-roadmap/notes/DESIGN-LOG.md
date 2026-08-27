@@ -11,6 +11,113 @@
 
 ---
 
+## 2026-08-27（`ubuntu24-pc`）· 词法分析器动工并完成：验收 21/21 全过
+
+用户开口「按 spec/lexer/DESIGN.md 开始实现」（与 08-26 设计是同一条任务会话）。
+动工条件核对：条件 1 已于 08-26 修正为不阻塞词法；条件 2/3 与词法无关；
+条件 4（OCaml 够用）被实现方式覆盖——用户 08-26 拍板 L1 时已明确**代码由 AI 生成**。
+
+### 做了什么
+
+- `../compiler/` 从空壳变为可构建工程（dune 3.24.1 / OCaml 5.5.0，**单 dune 工程**，
+  决策 009 布局）：`lib/lexer/{tokens.mly, lexer.mll, line_map.ml, token_debug.ml}`
+  + `bin/main.ml`（token 转储 CLI，`-l` 打印映射位置）+ `test/run.sh`
+- `tokens.mly`：96 个 `%token`（44 关键字 + 46 标点 + 5 带 payload + EOF），
+  全部带 token 别名；`menhir --only-tokens` 生成，**一次构建通过**
+- `lexer.mll` 落全部设计机制：pp-number 整词切分 + `classify_num` 整词校验（Q13）、
+  行映射表 + 系统头标志（决策 006）、`#pragma` 吞行留 TODO、四条未预处理探测、
+  双字符组归一化、字面量存原始拼写（决策 007）
+- **验收 `bash test/run.sh`：21/21 通过**（决策 008）——
+  T0 自造陷阱 17 条（`0x1e+2`/`123abc`/`0x1.8`/`1lL` 整词报错、未闭合字面量、
+  四条探测器、`<:` 归一化、行映射差一格专项、系统头标志、pragma、字符串内 UTF-8）
+  + T1 基线吻合（hello.i **3122** / big.i **23853**，与 08-26 实测逐一致）
+  + T2 往返（token 流每行一个 → `gcc -fsyntax-only` 零诊断）
+- 抽查：`-l` 模式下 hello.i 的 `fscanf` 映射到 `/usr/include/stdio.h:422`，
+  `sed -n '422p'` 打开确认正是 `extern int fscanf (FILE *__restrict __stream,` ✅
+- 建 `../compiler/.claude/settings.json`（照 `ocaml-learning` 体例：
+  dune / gcc -E / gcc -fsyntax-only / 测试脚本 + 只读 git）
+- 状态回写：`compiler/CLAUDE.md`（清掉「⛔ 别写代码」）、`compiler/README.md`、
+  本目录 `CLAUDE.md` 词法行、`spec/lexer/DESIGN.md` 头部与遗留表
+
+### 遗留
+
+- ⬜ 跨机器构建脚本（类 `ocaml.sh` 包装）——等 `win10-laptop` 真用到再加
+  （那台的 ocamllex/menhir 本就未核实，REQUIREMENTS §4.4）
+- ⬜ parser 及之后的层：动工条件不变（特性集未收敛、决策 004 暂定、LLVM 未装）
+- ⬜ 原 `c-lexer/` 目录只剩指针 README，删除留给用户
+- git 未提交，**记得提交**（本条 + 08-26 两轮 + 全部代码）
+
+---
+
+## 2026-08-26（`ubuntu24-pc`）· c-lexer 总体设计：8 个开放问题全部有了答案
+
+**这条对话不在本目录，是用户单开的词法设计任务**（`../spec/lexer/`，需求见那边的
+`REQUIREMENTS.md`）。按用户要求一次一个问题推进（L1 → L2 → L4 → L5/L6 → L7/L8），
+每条摆选项 + 推荐 + 代价，**用户逐条拍板**。中途用户把该任务的模型从 Opus 5 切到
+Fable 5，对全部设计做了一轮复审。
+
+### 谈了什么 / 实测了什么
+
+全程实测驱动（gcc 11.5.0，完整实测记录在 `../spec/lexer/DESIGN.md` 附录）：
+
+- **REQUIREMENTS §4.3「只认 ISO C 的词法器在 hello world 上就会挂」被实测推翻**：
+  零 GNU 知识的严格 ISO 词法器把 815 行 `hello.i`（3122 token）和 4901 行 `big.i`
+  （23853 token）完整切完零错误——`__attribute__` 等 GNU 扩展在词法层就是合法 ISO 标识符
+- `gcc -E` 已做掉注释和行接续；三元符默认不替换；双字符组和 `0b` 原样漏进 `.i`
+- `gcc -E` **不验证数字词素**（`0x1e+2`、`123abc` 原样通过），合法性检查落在词法层
+- `#pragma` 会活过 `-E`（REQUIREMENTS §4.2 没提到的第二类 `#` 行）
+- menhir 20260209 的 `--only-tokens` / `--external-tokens` / `--unused-tokens` 均查证存在
+
+### 定下的
+
+| 问题 | 用户的选择 | 落到哪 |
+|---|---|---|
+| L1+L2+L3 范围与版本 | **完整 C17 词法**；只吃 `.i`；做双字符组 + `0b`；不做三元符/注释/行接续；GNU 扩展归 parser | 决策 [`005`](decisions/005-lexer-scope.md) |
+| L4 行标记（= Q5） | **行映射表**；`#pragma` 先吞留 TODO；记录系统头标志 | 决策 [`006`](decisions/006-line-markers.md) |
+| L5+L6 形态与接口 | `tokens.mly` + `--only-tokens`；token 不带位置；字面量存**原始拼写**；字符串拼接推给 parser | 决策 [`007`](decisions/007-token-interface.md) |
+| L7 验收 | 四级阶梯 T0–T3，T2（gcc 往返）为主标准 | 决策 [`008`](decisions/008-lexer-test-standard.md)（⚠️ **暂定**，未正面确认） |
+| L8 目录归宿 | **未决** | Q12 |
+
+### Fable 5 复审的产出（同日）
+
+- **新发现一个设计岔路**：数字词素按 **pp-number**（C17 §6.4.8）切还是按精确数值文法切。
+  实测：两种切法在全部合法输入上等价（token 数逐一致），但对 `0x1e+2` 这类非法词素，
+  精确切法会静默拆成三个合法 token、与 gcc 行为分歧且 T2 测不出来；
+  pp-number 与 gcc 一致且 ocamllex 规则更少。**建议 pp-number，待用户点头** → Q13
+- T2 从「空格连接单行」改成「**每 token 一行**」（实测可行，gcc 报错行号 ≈ token 序号）
+- 未预处理探测器补第 4 条（残留 `#include` / `#define` 等指令行是最直接的证据）
+- T0 补「字符串内 UTF-8 中文」用例（实测字节级透明通过；AI 生成代码里中文字符串很可能出现）
+
+### 我做的事
+
+- 写决策 005–008 + 更新 `INDEX.md`
+- Q5 → ✅（落 006）；新增 Q12（目录）/ Q13（pp-number）/ Q14（008 待确认）
+- 决策 002 补两条隐藏代价（宏展开行的列号精度、`-E` 不验证数字）+ 行标记指针更新
+- `compiler/README.md` 动工条件 1 修正、`CLAUDE.md` 词法行改状态（REQUIREMENTS §3.1 的待办清掉）
+- 写 `../spec/lexer/DESIGN.md`（总体设计定稿 + 全部实测记录）
+
+### 遗留（→ `OPEN-QUESTIONS.md`）
+
+- 🔵 Q13：pp-number 策略待用户点头
+- ⬜ Q12：目录归宿（建议并入 `compiler/`，dune 单工程理由）
+- ⬜ Q14：验收标准（008）待正面确认
+- ⛔ **动工等用户明确开口**（REQUIREMENTS §6.3 仍然有效）
+- ⚠️ `win10-laptop` 的 ocamllex / menhir 未核实（REQUIREMENTS §4.4）
+
+### 补（同日，稍后）：三条遗留全部关闭
+
+用户一句「都按照你推荐的方案走」：
+
+- **Q13 ✅**：数字词素按 pp-number 切（→ `../spec/lexer/DESIGN.md` §3）
+- **Q14 ✅**：验收标准确认，决策 008 转 ✅
+- **Q12 ✅**：目录并入 → 决策 [`009`](decisions/009-directory-layout.md)。
+  两份文档已迁 `../spec/lexer/`（本条上文的旧路径链接已同步改指新址），
+  原 `c-lexer/` 只剩指针 README，目录删除留给用户（它是该会话的工作目录）。
+
+**至此词法设计零未决项；动工仍等用户开口。**
+
+---
+
 ## 2026-08-21（`ubuntu24-pc`）· 项目定位交代 + 两个方向性决策 + 建目录结构
 
 **这是本目录第一次有「设计讨论」性质的记录。** 在此之前它只有三份静态文档

@@ -1,0 +1,9 @@
+(library
+ (name mycc_lexer))
+
+; tokens.mly 只生成 token 类型定义（决策 007）
+(menhir
+ (modules tokens)
+ (flags --only-tokens))
+
+(ocamllex lexer)
