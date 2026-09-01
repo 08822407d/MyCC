@@ -370,11 +370,88 @@ and     eval_stmt s = … eval_expr …
 `let rec show = … and show_binop = …` 的由来** —— 不是风格选择，
 **是被数据结构的形状逼出来的**。
 
-## 21.2.9 ⬜ 还没讲：`type … and …`（重讲时没走到这里）
+## 21.2.9 ✅ `type … and …`（2026-09-01 讲完）
 
-**2026-08-20 重讲 21.2 时讲到「`rec` 有无语义相反」为止，用户下班了。**
-下面这块（`and` 用在 `type` 上、接他的 AST 目标）**下次接着讲**，内容见上面那一节
-「⭐ 这东西在他的目标里是刚需」，**照着走即可**。
+> **时机极好**：他 2026-08-27 刚在 `compiler/lib/lexer/` 写完 C 词法分析器，
+> **`lib/` 下只有 `lexer/`，下一个要建的就是 `ast.ml`** —— 这块内容当场就有落点。
+
+### 切入点：C 里「类型」和「表达式」本来就互相嵌套
+
+```c
+int a[n + 1];        /* 类型里面嵌了表达式（数组长度） */
+x = (long)y;         /* 表达式里面嵌了类型（强制转换） */
+sizeof(int[n])       /* 两层都有 */
+```
+
+⚠️ **这个例子比「表达式套语句块」准**：标准 C 里表达式并不含语句
+（那是 GNU 扩展），但**类型 ↔ 表达式是标准 C 里货真价实的相互递归**，
+而且正是他写 parser 时第一批会撞上的。
+
+### 照直翻成 OCaml → 报错（实测）
+
+```
+type ctype = Int | Ptr of ctype | Array of ctype * expr
+and(改成 type) expr = ...
+
+Error: Unbound type constructor expr
+```
+
+**和 `let` 那次一模一样的形状** —— `type` 也是顺序生效的。解法也一样：绑成一组。
+
+```ocaml
+type ctype = Int | Ptr of ctype | Array of ctype * expr
+and  expr  = Num of int | Var of string | Cast of ctype * expr | Sizeof of ctype
+```
+
+### ⚠️ 一处和 `let` 不同：`type` 不需要 `rec`
+
+OCaml 的类型定义**天然就能引用自己**（`Ptr of ctype` 里那个 `ctype` 就是自指），
+所以 `and` 在 `type` 上的作用**只有一个**：把几条绑成一组、互相可见。
+
+### ⭐ 它会传染到函数（这是本节的落点）
+
+数据结构互相嵌套 → **遍历它的函数也必然成对**（实测输出）：
+
+```ocaml
+let rec show_type t = match t with
+  | Int -> "int"
+  | Ptr t -> show_type t ^ "*"
+  | Array (t, e) -> show_type t ^ "[" ^ show_expr e ^ "]"   (* 调用对方 *)
+and show_expr e = match e with
+  | Num n -> string_of_int n
+  | Var s -> s
+  | Cast (t, e) -> "(" ^ show_type t ^ ")" ^ show_expr e     (* 调用对方 *)
+  | Sizeof t -> "sizeof(" ^ show_type t ^ ")"
+```
+
+```
+show_type (Array (Int, Var "n"))              →  int[n]
+show_expr (Cast (Ptr Int, Var "y"))           →  (int*)y
+show_expr (Sizeof (Array (Ptr Int, Num 10)))  →  sizeof(int*[10])
+```
+
+> **数据结构的形状，决定了代码的形状。**
+> `type A … and B` 互相嵌套 → 处理它们的 `let rec f … and g` 也必然成对。
+> **不是风格选择，是被逼出来的。**
+
+这就是 `~/projs/ocaml-compiler-lab/lib/ast.ml` 里 `let rec show = … and show_binop = …` 的由来。
+
+### 三种 `and` 一张表收掉（给他的判据）
+
+| 写法 | 需要 `rec` 吗 | `and` 干什么 |
+|---|---|---|
+| `type A = … and B = …` | **不需要**（类型天然自指） | 让 A、B **互相可见** |
+| `let rec f = … and g = …` | **需要** | 让 f、g **互相可见** |
+| `let a = … and b = …` | 没有 `rec` | **并列绑定**，右边用旧环境，**互相看不见** |
+
+**「看有没有 `rec`」这条判据只对 `let` 适用，`type` 不参与。**
+
+### ⬜ 抛出去还没答的问题（下次接手先收这个）
+
+> 把上面那段的第二行 `and` 改成 `type`，会怎样？为什么？
+> （提示：和他 08-20 答对的 `let helper x = x + 1 and is_odd n = …` 是同一个机制 ——
+> **`and` 粘在离它最近的那个 `let`/`type` 上**。改成 `type` 就等于把组切断，
+> 第一行的 `expr` 立刻变成 `Unbound type constructor`。）
 
 ## 21.3 ⛔ 还没讲的（D1 剩下的）
 
@@ -391,3 +468,151 @@ OCaml 社区不太用**的东西。
 - [`20-option.md`](20-option.md) — 20.6 穷尽性检查的价值，21.1 的代价那节是它的反面
 - [`03-let-in-scope.md`](03-let-in-scope.md) — `let` 的作用域，21.2 的前置
 - [`10-recursion.md`](10-recursion.md) — `rec` 是干什么的
+
+---
+
+## 21.2.10 🔴 用户 2026-09-01 要求把 `type … and …` **重讲**（换掉编译器锚点）
+
+**他的原话（很重要，属于方针级）：**
+
+> 「现在你忘记我之前在别的对话里让 fable5 做一个 c17 全兼容词法分析器和我要开始写编译器的事情，
+> 应当认为我仅仅是要学 ocaml 语言。**因为我感觉到自己还没有熟悉 ocaml 的常用内容，
+> 过早引入编译器的内容会无形拉高理解门槛。** 现在你从『ocaml 入门教程』的角度重新讲解 `type ... and ...`」
+
+**这是他第 N 次踩刹车，而且又是对的。** 21.2.9 那版用「C 的类型 ↔ 表达式互相嵌套」当锚——
+锚本身没问题，但它**把编译器的心智负担一起带进来了**。
+
+→ **判据更新**：`compiler-roadmap/` 和 `compiler/` 的内容**一律不要当锚点**，
+即使当时看起来「时机极好」。**锚要从他的日常经验里取，不是从他的目标里取。**
+
+### 重讲用的锚：文件夹树（有效，一次就通）
+
+```ocaml
+type entry =
+  | File of string
+  | Folder of folder        (* ← 用到了 folder *)
+
+and folder = { name : string; items : entry list }
+```
+
+讲法四步，**每一步都实测给他看**：
+
+1. **先写坏的**：两个独立 `type` → `Error: Unbound type constructor folder`
+2. **换顺序还是坏**：→ `Error: Unbound type constructor entry`
+   → **这一步是关键**，它证明「不存在一个能让两边都满意的顺序」
+3. **C 里怎么解**：前向声明 `struct folder;`
+4. **OCaml 怎么解**：没有前向声明，改成**捆成一组** —— `and`
+
+## 21.2.11 `rec` 到底是什么（他主动追问，答得很值）
+
+**他的猜测**（典型的「好推理落错对象」）：
+
+> 「`rec` 应该是专为函数的递归调用准备的，具体机理我不知道。此外我猜测对 rec 标记的函数，
+> ocaml 编译器可能会有特殊的优化，或者有不同于普通函数的编译处理。ocaml 是函数式编程语言，
+> 因此对递归的处理不能用 c 之类的命令式语言的知识硬套……」
+
+**结论一句话：`rec` 是一个「编译期的名字可见性开关」，不产生任何运行期机制，也不带来任何优化。**
+
+### 四条实测证据（这套组合很好用，可复用）
+
+**① 不写 `rec` 时，函数体里的名字指的是「上一个同名的」**
+
+```ocaml
+let f n = "旧的 f"
+let f n = if n = 0 then "到底了" else f (n - 1)
+let () = print_endline (f 3)
+```
+→ 输出 `旧的 f`。**能编译、不报错、静默调了旧的。**
+这就是他早学过的**遮蔽**：`let 名字 = 表达式` 里右边看到的是旧世界。
+`rec` 只是把名字**提前**放进作用域。
+
+**② `rec` 不产生任何优化 —— 汇编一模一样**
+
+```ocaml
+let f x = x + 1
+let rec g x = x + 1      (* 挂了 rec 但没递归 *)
+```
+`ocamlopt -S` 出来两段完全相同：`addq $2, %rax` / `ret`。
+→ **`rec` 在类型检查之后就消失了，不进入代码生成。**
+（顺带解释了 `$2`：OCaml 的 int 编码成 `2n+1`，加 1 落到机器上是加 2。他没追问。）
+
+**③ 递归就是 C 的那个调用栈**
+
+```ocaml
+let rec depth n = 1 + depth (n + 1)
+```
+→ `Stack_overflow`。压返回地址、压参数、跳转、返回，**和 C 完全一致**。
+尾递归优化是编译器**看形状**决定的（调用完直接返回），**跟 `rec` 这个关键字无关**。
+
+**④ 直面「函数式是不是不一样」这个困扰**（呼应 `00-mental-model.md`）
+
+| | |
+|---|---|
+| ✅ 真的不一样 | 没有可变的循环计数器，**所以只能靠递归**。这是**写法**层面 |
+| ❌ 并没有不一样 | 运行期的调用/返回/栈帧和 C 一致。这是**机器**层面 |
+
+**这两层必须分开说**，混着讲会让他以为「函数式的递归是某种魔法」。
+
+### `nonrec`（顺带讲了，因为它把默认值补全了）
+
+`type` 的默认**和 `let` 正好相反**：
+
+```ocaml
+type t = Leaf;;
+type t = Node of t;;        (* 这个 t 是新的 *)
+let bad = Node Leaf;;
+```
+→ `Error: … There is no constructor Leaf within type t`
+说明 `Node of t` 里的 `t` 指**正在定义的新 t**。**类型天生看得见自己。**
+
+```ocaml
+type nonrec t = Node of t;;   (* 这里的 t 是旧的 *)
+let ok = Node Leaf;;          (* ✅ 通过 *)
+```
+
+> **`nonrec`** — 让定义体里的类型名指向**旧的同名类型**。很少用，见过就行。
+
+### 收口表（他接受得很顺）
+
+| | 默认 | 想反过来 |
+|---|---|---|
+| `let` | 名字**定义完**才可见 | `let rec` |
+| `type` | 名字**定义中**就可见 | `type nonrec` |
+
+`and` 是两者的推广：**把几个定义捆成一组，组内互相可见**。
+所以 `let rec … and …` 需要 `rec`，`type … and …` 不需要。
+
+## 21.2.12 `ex10_type_and` —— D1 的第一道练习（17/17 全过）
+
+`exercises/ex10_type_and/`，**难度压过**（他要求「注意控制难度」）：
+新东西只有 `and`，其余全是学过的（`match` / 记录取字段 / `fold` / `@` / `max`）。
+**类型给好，函数骨架（含 `and`）也摆好，他只填函数体。**
+
+5 题：`entry_name`（热身不递归）/ `size` / `count` / `depth` / `names`，
+后 4 题都是 `let rec X_entry … and X_folder …` 的相互递归。
+
+**他的第一版：1、2 对，4 空着（只有思路），3、5 各两处错。**
+
+| 错处 | 报错 | 性质 |
+|---|---|---|
+| `\| File -> 1` | `expects 2 argument(s), applied to 0` | 构造器元数（见 `concepts/09` 的 9.9） |
+| `\| Folder -> count_folder e` | 同上，1 vs 0 | 同上 |
+| `acc + count_folder e` | `f.items has type entry list but … folder list` | **把「文件夹函数」用在了条目上** |
+| `\| File f -> [f.name]` | `expects 2 argument(s), applied to 1` | 以为 `File` 装的是记录，实际是二元组 |
+| `acc @ (names_folder e)` | 同第 3 行 | **同一个错犯了第二次** |
+
+**🚩 值得记的两点：**
+
+1. **他在 TODO 2 全写对了**（`size_entry e`、`File (_, s)`），3 和 5 是「抄骨架时漏改」
+   —— 又一次「**局部对、整体漏一块**」。纠正时说了「你 TODO 2 写对了」，效果好。
+2. 借第 3 条报错讲了一条通用经验：
+   **OCaml 类型错误的箭头指的是「最先撞上矛盾的地方」，不一定是「写错的地方」。**
+   （`count_folder e` 逼出 `e : folder` → 表必须是 `folder list` → 走到 `f.items` 才炸。）
+
+**C 习惯提醒（按他长期要求，照提）**：`List.fold_left(fun acc e -> …)` 函数名后紧贴括号。
+这次无害，但说清了会咬人的场景（`f (a, b)` 变成传一个二元组）。
+
+**TODO 4 他只有思路没写出来。** 有效的搭桥方式：
+**把他自己 ex07 写的 `max_or` 贴出来**，指出「一路取最大值就是一个 fold」，
+再给三个空（怎么并 / 起点 / 表里装的不是数）。他一次就写对了，
+而且 `1 +` 放在 `fold_left` 外面——**这一点没提示他也做对了**。

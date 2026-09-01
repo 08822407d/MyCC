@@ -1,0 +1,4 @@
+(executable
+ (name main)
+ (flags
+  (:standard -w +a-4-9-26-27-32-39-40-41-42-44-45-69-70)))

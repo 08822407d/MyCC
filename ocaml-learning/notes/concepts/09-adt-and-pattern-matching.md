@@ -547,3 +547,72 @@ type shape = Circle of float | Square of float
 > 于是他同时面对递归 + ADT + 模式匹配三个新东西。
 
 **下次给例子前，先逐个检查里面用到的每个概念是否讲过。**
+
+---
+
+## 9.9 构造器模式的元数：`File` / `File _` / `File v`（2026-09-01，用户提问）
+
+**起因**：ex10 里 `type entry = File of string * int | Folder of folder`。
+他在 TODO 3/5 写了 `| File -> 1`、`| File f -> [f.name]`，都撞了同一个报错。
+改完之后**主动回头问了写法规则**，问题问得很准：
+
+> 「它携带的是二元组类型的值，在第三和第四题中的 File 模式不关心它携带的值，
+> 也必须要在模式 `->` 左边加上一个 `_` 而不能只写 `File` 吗？
+> 如果我写 `| File v -> v.fst … v.lst` 类似的写法访问两个值可以吗？」
+
+### 四种写法的实测结果
+
+| 写法 | 结果 | 报错 / 说明 |
+|---|---|---|
+| `\| File -> "x"` | ❌ | `The constructor File expects 2 argument(s), but is applied here to 0` |
+| `\| File _ -> "x"` | ✅ | **一个 `_` 顶掉全部参数**，社区默认写法 |
+| `\| File (_, _) -> "x"` | ✅ | 合法但啰嗦，还得数元数 |
+| `\| File v -> "x"` | ❌ | `… but is applied here to 1 argument(s)` |
+
+> **元数（arity）** — 构造器携带几个东西。`File of string * int` 元数是 2。
+
+**规则**：模式里要么把每个位置都写出来，要么用**一个光秃秃的 `_`** 顶掉全部。中间状态不行。
+`File _` 里的 `_` 不是「一个参数」，是「剩下的全不管」——元数 2 / 5 / 10 都一样写。
+
+### 关键区分：`of t1 * t2` 和 `of (t1 * t2)` 不是一回事
+
+```ocaml
+File of string * int      (* 携带【两个】东西 —— 不存在一个二元组可以绑给 v *)
+File of (string * int)    (* 携带【一个】二元组 —— 这时 File v 才成立 *)
+```
+
+第二种确实能写他设想的形式，实测通过：
+
+```ocaml
+type entry2 = File2 of (string * int) | Folder2 of string
+let f e = match e with
+  | File2 v -> Printf.sprintf "%s/%d" (fst v) (snd v)
+  | Folder2 s -> s
+(* f (File2 ("a.txt", 10))  →  "a.txt/10" *)
+```
+
+### 顺带纠了一处：`v.fst` 不存在
+
+```
+Error: This expression has type string * int which is not a record type.
+```
+
+**元组不是记录，没有字段名。** `fst` / `snd` 是**普通函数**，写在前面：`fst v`。
+⚠️ **只对二元组有效**；三元组以上只能用模式拆。
+实际写代码时 `fst`/`snd` 用得不多——**直接在模式里拆更常见**（他 TODO 5 就是这么写对的）：
+`| File (name, _) -> [ name ]`。
+
+### 附带（他是看内核的，这条有感觉）
+
+```ocaml
+type a = A of int * int      (* Obj.size = 2：两个值直接排在块里 *)
+type b = B of (int * int)    (* Obj.size = 1：块里一个指针，指向另一个二元组块 *)
+```
+
+**默认不加括号**：少一层间接、少一次分配。加括号只在确实要把元组当整体传来传去时才有意义。
+
+### 教学备注
+
+这一问属于「**语法边角**」，但**是他撞上之后主动问的**，不是我提前展开的
+——符合方针里「语法边角只在挡路时讲」。回答用了「四种写法各编译一次」的形式，
+每种都给了编译器原话，比讲规则有效。
