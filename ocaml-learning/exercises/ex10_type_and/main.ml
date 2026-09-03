@@ -16,7 +16,8 @@
    两个类型互相提到对方 —— 所以第二个用 and 接上，不能另起一个 type。 *)
 
 type entry =
-  | File of string * int (* 文件名, 字节数 *)
+  | File of string * int
+  (* 文件名, 字节数 *)
   | Folder of folder
 
 and folder = { name : string; items : entry list }
@@ -68,7 +69,7 @@ let rec size_entry (e : entry) : int =
   match e with
   | File (_, s) -> s
   | Folder f -> size_folder f
-    
+
 and size_folder (f : folder) : int =
   List.fold_left (fun acc e -> acc + size_entry e) 0 f.items
 
@@ -102,8 +103,9 @@ let rec depth_entry (e : entry) : int =
   match e with
   | File _ -> 0
   | Folder f -> depth_folder f
+
 and depth_folder (f : folder) : int =
-  1 + (List.fold_left (fun m e -> max m (depth_entry e)) 0 f.items)
+  1 + List.fold_left (fun m e -> max m (depth_entry e)) 0 f.items
 
 (* ─────────── 第三部分：结果是一张表 ─────────── *)
 
@@ -118,10 +120,11 @@ and depth_folder (f : folder) : int =
      - 想不出来就退回 fold_left + List.rev，或者试试 fold_right *)
 let rec names_entry (e : entry) : string list =
   match e with
-  | File (name, _) -> [name]
+  | File (name, _) -> [ name ]
   | Folder f -> names_folder f
+
 and names_folder (f : folder) : string list =
-  List.fold_left (fun acc e -> acc @ (names_entry e)) [] f.items
+  List.concat_map names_entry f.items
 
 (* ===================== 分隔线以下别改 ===================== *)
 
@@ -131,8 +134,7 @@ let demo =
     items =
       [
         File ("README.md", 120);
-        Folder
-          { name = "src"; items = [ File ("main.ml", 300); File ("dune", 40) ] };
+        Folder { name = "src"; items = [ File ("main.ml", 300); File ("dune", 40) ] };
         Folder { name = "empty"; items = [] };
         File ("LICENSE", 60);
       ];
@@ -146,10 +148,7 @@ let deep =
     items =
       [
         Folder
-          {
-            name = "b";
-            items = [ Folder { name = "c"; items = [ File ("x.txt", 1) ] } ];
-          };
+          { name = "b"; items = [ Folder { name = "c"; items = [ File ("x.txt", 1) ] } ] };
       ];
   }
 
@@ -157,11 +156,8 @@ let check name to_s expected thunk =
   match thunk () with
   | actual ->
       if actual = expected then Printf.printf "  [OK] %s\n" name
-      else
-        Printf.printf "  [XX] %s -> 期望 %s，实际 %s\n" name (to_s expected)
-          (to_s actual)
-  | exception e ->
-      Printf.printf "  [--] %s -> 还没做（%s）\n" name (Printexc.to_string e)
+      else Printf.printf "  [XX] %s -> 期望 %s，实际 %s\n" name (to_s expected) (to_s actual)
+  | exception e -> Printf.printf "  [--] %s -> 还没做（%s）\n" name (Printexc.to_string e)
 
 let si = string_of_int
 let ss (s : string) = s
@@ -193,8 +189,7 @@ let () =
   check "depth_entry (File)" si 0 (fun () -> depth_entry (File ("k", 7)));
 
   print_endline " -- 收集文件名 --";
-  check "names_folder demo" s_sl
-    [ "README.md"; "main.ml"; "dune"; "LICENSE" ]
-    (fun () -> names_folder demo);
+  check "names_folder demo" s_sl [ "README.md"; "main.ml"; "dune"; "LICENSE" ] (fun () ->
+      names_folder demo);
   check "names_folder empty" s_sl [] (fun () -> names_folder empty);
   check "names_folder deep" s_sl [ "x.txt" ] (fun () -> names_folder deep)

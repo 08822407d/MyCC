@@ -80,7 +80,7 @@
 
 | 步 | 内容 |
 |---|---|
-| **D1** | 🟡 **进行中**。✅ 已讲：`function` + **嵌套模式**（[`concepts/18`](concepts/18-function-and-patterns.md)）、<br>**`when` 守卫**（[`concepts/21`](concepts/21-when-and.md) 的 21.1 + **21.1.5**，08-20 深挖，产出「模式活在编译期、守卫活在运行期」）、<br>**`and` 相互递归**（21.2，08-19 首讲 → **08-20 已重讲**，走完前 2/3）。<br>✅ **`type … and …`**（21.2.9 首讲 → **21.2.10 换文件夹树重讲**）+ **`rec` 机理**（21.2.11，含 `nonrec`）。<br>✅ **`ex10_type_and` 17/17 全过** —— **D1 零练习的状态结束了**。<br>✅ **可变记录 `mutable`/`<-` + `ref` 的真面目**（[`concepts/22`](concepts/22-mutable-record-and-ref.md)）。<br>🟡 **数组讲了一半**（[`concepts/23`](concepts/23-arrays.md)）：造/读写/越界/定长/和 C·C# 对照。<br>⬜ 还差 `Array.iter`/`map`/`to_list`/`of_list` + 「数组 vs 列表怎么选」→ **然后 `ex11` 收官** |
+| **D1** | 🟡 **进行中**。✅ 已讲：`function` + **嵌套模式**（[`concepts/18`](concepts/18-function-and-patterns.md)）、<br>**`when` 守卫**（[`concepts/21`](concepts/21-when-and.md) 的 21.1 + **21.1.5**，08-20 深挖，产出「模式活在编译期、守卫活在运行期」）、<br>**`and` 相互递归**（21.2，08-19 首讲 → **08-20 已重讲**，走完前 2/3）。<br>✅ **`type … and …`**（21.2.9 首讲 → **21.2.10 换文件夹树重讲**）+ **`rec` 机理**（21.2.11，含 `nonrec`）。<br>✅ **`ex10_type_and` 16/16 全过** —— **D1 零练习的状态结束了**。<br>✅ **可变记录 `mutable`/`<-` + `ref` 的真面目**（[`concepts/22`](concepts/22-mutable-record-and-ref.md)）。<br>✅ **数组全部讲完**（[`concepts/23`](concepts/23-arrays.md)）：造/读写/越界/定长/C·C# 对照/`iter`·`map`·`to_list`·`of_list`·`fold`/**选型判据**。<br>🔴 **知识点全部讲完，只差 `ex11` 收官** |
 | **D1.5** | **自己定义带参数的类型**（`type 'a box = …`）。⚠️ **2026-08-10 从 B2 挪来的**：<br>用户在 B1（函数签名里的 `'a`）之后，还没准备好接受「类型定义里的 `'a`」。<br>**两件事，别当成一件。** 前置：D1 的嵌套模式 + 大量 `option` / `list` 的使用经验 |
 | **D2** | **模块系统**（到这里已有 `Map` 的实际需求，抽象概念有落点了） |
 
@@ -147,16 +147,13 @@
 
 > `type … and …` 已用**文件夹树**重讲完（[`concepts/21`](concepts/21-when-and.md) 的 **21.2.10**），
 > 顺带把 **`rec` 的机理**讲透了（**21.2.11**：编译期的名字可见性开关，**不是优化**；含 `nonrec`）。
-> **`ex10_type_and` 17/17 全过**（21.2.12）；[`concepts/09`](concepts/09-adt-and-pattern-matching.md)
+> **`ex10_type_and` 16/16 全过**（21.2.12）；[`concepts/09`](concepts/09-adt-and-pattern-matching.md)
 > 补了 **9.9 构造器元数**（`File` / `File _` / `File v` 四种写法实测）。
 > **⛔ 21.2.9 末尾那道题作废**（它挂在编译器锚上）。
 >
-> **⬜ 先问一句 `concepts/24` 看了吗**（他 09-01 下班前说「等晚上回家再看」），
-> 那篇里还有**两件挂着的小事**：`break-cases = all` 加不加、TODO 5 改不改成 `concat_map`。
->
-> **然后接数组的后半**（`concepts/23` 末尾有「⛔ 讲到哪了」）：
-> `Array.iter` / `map` / `to_list` / `of_list` + **「数组 vs 列表怎么选」**，
-> **讲完立刻出 `ex11`（D1 收官）**。
+> **🔴 D1 的知识点全部讲完了（2026-09-03），直接出 `ex11`，别再讲新东西。**
+> 要压的两件：**可变记录 `mutable`/`<-`/`ref`**（`concepts/22`）+ **数组**（`concepts/23`）。
+> ⚠️ **控制难度**：照 ex10 那套 —— 骨架全给好、只填函数体、一道热身题打头。
 >
 > ⚠️ **他明确要求「注意控制难度」**。`ex10` 的做法被验证有效，照抄：
 > **新东西只上一个；类型和函数骨架（含 `and`）都给好；他只填函数体。**

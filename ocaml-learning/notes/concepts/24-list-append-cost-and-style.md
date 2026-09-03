@@ -177,7 +177,13 @@ match e with File (name, _) -> name | Folder f -> f.name
 break-cases = all
 ```
 
-⬜ **2026-09-01 下班前问了他要不要加，他没答**，配置**没动**。下次问一句。
+✅ **2026-09-03 已加。** 他的原话：
+
+> 「还是不要把短 match 压成一行了，**我自己写代码时不论多短的 `if…else` 都会清晰地分开
+> 便于看清分支情况**。」
+
+`exercises/.ocamlformat` 现在是 `profile = default` / `margin = 90` / **`break-cases = all`**。
+实测生效：格式化后 `match` 保持每分支一行，只改无争议的地方（两处多余括号、`[ name ]`、行尾空格）。
 
 ### B 类：**语义 / 选型** → 格式化器管不了，得自己判断
 
@@ -196,7 +202,7 @@ ex10 里只有两条，都在 TODO 5：
 | | 状态 | 建议 |
 |---|---|---|
 | ex10 TODO 1–4 | ✅ | 无 |
-| ex10 TODO 5 | `fold_left` + `acc @ …` | 改成 `List.concat_map names_entry f.items` |
+| ex10 TODO 5 | ~~`fold_left` + `acc @ …`~~ | ✅ **2026-09-03 他自己改成了 `List.concat_map`** |
 | 格式 | 2 处多余括号、1 处行尾空格 | 跑 `bash ./scripts/ocaml.sh fmt` |
 
 **一句话记住：**
@@ -214,3 +220,63 @@ ex10 里只有两条，都在 TODO 5：
   给出「32000 个要 9.4 秒 vs 1.6 毫秒」之后不需要再解释。
 - **「格式交给工具、选型自己判断」这个二分对他很受用**，
   因为它把「我该不该纠结这个」变成了一个有明确答案的问题。
+
+---
+
+## 24.7 后续（2026-09-03）
+
+### 他说「concat_map 是啥，我没什么印象」
+
+→ 09-01 那次是**顺口带过的**，没展开。**教训：新的库函数不能只在收口表里出现一次。**
+
+重讲的路子（有效）：**先给他看 `map` 的结果差在哪**——
+
+```ocaml
+List.map names_entry demo.items      (* → string list list  ← 多了一层 *)
+List.concat (List.map names_entry demo.items)   (* → string list *)
+List.concat_map names_entry demo.items          (* 两步合一，只走一遍 *)
+```
+
+**「你要的是 `string list`，手上是 `string list list`，中间差一次拍平」** —— 这句让他一次就懂了，
+比先讲签名有效得多。
+
+再给三个形状（一对一 / 一对多 / 一对零）：
+
+```ocaml
+List.map        (fun x -> x * 2)     [1;2;3]   (* [2;4;6]        一对一 *)
+List.concat_map (fun x -> [x; x])    [1;2;3]   (* [1;1;2;2;3;3]  一对多 *)
+List.concat_map (fun x -> if x > 1 then [x] else []) [1;2;3]  (* [2;3] 一对零 = 能当 filter *)
+```
+
+| 每个元素产出 | 用 |
+|---|---|
+| 恰好 1 个 | `List.map` |
+| 0 或 1 个 | `List.filter_map` |
+| 任意个 | **`List.concat_map`** |
+
+### 他改完之后剩的一处：η-展开
+
+他写的是：
+
+```ocaml
+List.concat_map (fun e -> names_entry e) f.items
+```
+
+**功能对**，但那个 lambda 什么都没做。
+
+> **η-展开（eta-expansion）** — `fun x -> f x` 和 `f` 是同一个函数。
+> 反过来收成 `f` 叫 **η-收缩**，社区默认写收缩后的形式。
+
+讲法：接他早学过的**「函数是值」**（知识点 4），
+以及他自己问过的 `List.fold_left ( + ) lst`（那里他就是直接传函数、没套 lambda）。
+
+**判据：如果 lambda 的函数体只是「把参数原样喂给另一个函数」，这个 lambda 是多余的。**
+
+```ocaml
+List.map (fun x -> string_of_int x) l   (* 多余 *)
+List.map string_of_int l                (* ✅ *)
+List.map (fun x -> x * 2) l             (* ✅ 不多余，函数体做了事 *)
+```
+
+⚠️ 对**已经有名字的函数**来说两种写法完全等价，没有性能或语义差别，纯可读性。
+他一次就改对了。**ex10 最终 16/16。**

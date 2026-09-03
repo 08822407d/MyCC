@@ -170,3 +170,64 @@ let my_filter p lst =
 - [`10-recursion.md`](10-recursion.md) 的 10.6 — 尾递归；ex03 第 4 题的 `go` 就在那里
 - [`15-map-filter.md`](15-map-filter.md) — `map` / `filter`，以及 `qsort` 切入点
 - [`19-list-stdlib.md`](19-list-stdlib.md) — `List` 模块速查（`fold` 属于「收拢」那一类）
+
+---
+
+## 16.x fold 方向的最终确认（2026-09-03，用户主动核对）
+
+**他的问题：**
+
+> 「我再确认一下 List 和 Array 的 fold_left 和 fold_right 的方向，
+> fold_left 是从头部或者说下标小的方向开始，而 fold_right 从下标大的方向开始？」
+
+**答：两个都对，`List` 和 `Array` 行为一致。** 在 `f` 里加打印实测：
+
+```
+List.fold_left   f 的调用顺序: a b c
+List.fold_right  f 的调用顺序: c b a
+Array.fold_left  f 的调用顺序: a b c
+Array.fold_right f 的调用顺序: c b a
+```
+
+### 🚩 但「开始」有个歧义，钉了一下
+
+对 `fold_right` 来说**有两件事方向相反**：
+
+| | 方向 |
+|---|---|
+| **走到那儿**（遍历链表 / 索引） | 头 → 尾（列表只能这么走） |
+| **`f` 真正被调用** | **尾 → 头** ← 他问的是这个 |
+
+```ocaml
+let rec fold_right f l init =
+  match l with
+  | [] -> init
+  | x :: rest -> f x (fold_right f rest init)
+                    (*  ↑ 先把这一整坨算出来，才轮到外面这个 f *)
+```
+
+**必须先一路递归到底（头→尾），到底之后才开始往回调用 `f`（尾→头）。**
+
+准确说法：**`fold_right` 的 `f` 是从尾端开始被调用的。**
+
+### 括号图（比「顺序」更好记，沿用 16.x 那个演示）
+
+```
+List.fold_left  括号: (((0+a)+b)+c)
+List.fold_right 括号: (a+(b+(c+0)))
+```
+
+**两边的起点 `0` 都在最里层**，区别只是它贴着哪一端。
+
+### 四个签名（`List` / `Array` 形状相同）
+
+```ocaml
+List.fold_left  : ('acc -> 'a -> 'acc) -> 'acc -> 'a list -> 'acc
+List.fold_right : ('a -> 'acc -> 'acc) -> 'a list -> 'acc -> 'acc
+Array.fold_left  : ('acc -> 'a -> 'acc) -> 'acc -> 'a array -> 'acc
+Array.fold_right : ('a -> 'acc -> 'acc) -> 'a array -> 'acc -> 'acc
+```
+
+记法仍然是：**累加器靠近它「来的那一侧」。**
+
+⚠️ `Array` **没有带下标的 fold**；要下标用 `iteri` + `ref` 或 `for`。
